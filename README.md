@@ -1,6 +1,7 @@
 QMC=Chem : Quantum Monte Carlo for Chemistry
 ============================================
 
+**This repository is under migration to GitHub. Please be patient...**
 
 QMC=Chem is the quantum Monte Carlo program of the
 [Toulouse group](http://qmcchem.ups-tlse.fr).
