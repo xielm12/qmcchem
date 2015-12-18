@@ -11,7 +11,7 @@ export QMCCHEM_MPIRUN="mpirun"
 export QMCCHEM_MPIRUN_FLAGS="--bind-to-core"
 #export QMCCHEM_NIC=ib0
 source \${QMCCHEM_PATH}/irpf90/bin/irpman
-source \${QMCCHEM_PATH}/EZFIO/Bash/ezfio.sh
+#source \${QMCCHEM_PATH}/EZFIO/Bash/ezfio.sh
 EOF
 
 cd -

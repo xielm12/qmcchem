@@ -2,16 +2,23 @@
 
 set -e
 set -u
-cd install
+QMCCHEM_PATH=$PWD
+mkdir -p "${QMCCHEM_PATH}"/bin
+cd "${QMCCHEM_PATH}"/install
 mkdir -p Downloads _build
-mkdir -p bin
-if [[ ! -x ../bin/ninja ]]
+# TODO : Check if network is up (ping)
+if [[ ! -x "${QMCCHEM_PATH}"/bin/ninja ]]
 then
   echo "Installing Ninja"
   ./scripts/install_ninja.sh &> _build/ninja.log 
+  if [[ ! -x "${QMCCHEM_PATH}"/bin/ninja ]]
+  then
+    echo "Installation of Ninja failed"
+    exit 1
+  fi
   touch _build/ninja.ok
 fi
-touch ../{src,ocaml}/ls_md5
-exec ../bin/ninja "$@"
+touch "${QMCCHEM_PATH}"/{src,ocaml}/ls_md5
+exec "${QMCCHEM_PATH}"/bin/ninja "$@"
 
 

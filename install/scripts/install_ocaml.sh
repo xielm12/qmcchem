@@ -3,6 +3,7 @@
 set -u
 set -e
 
+cd .. ; QMCCHEM_PATH="$PWD" ; cd -
 PACKAGES="core cryptokit ocamlfind sexplib"
 
 declare -i i
@@ -13,7 +14,7 @@ then
    exit 1
 fi
 
-source ../qmcchemrc
+source "${QMCCHEM_PATH}"/qmcchemrc
 cd Downloads 
 chmod +x opam_installer.sh
 
@@ -41,7 +42,7 @@ export LIBRARY_PATH="${QMCCHEM_PATH}/lib:${LIBRARY_PATH}"
 export C_INCLUDE_PATH="${QMCCHEM_PATH}/lib:${C_INCLUDE_PATH}"
 set -u
 opam install ${PACKAGES} 
-rm ../_build/ocaml.log
+rm "${QMCCHEM_PATH}"/install/_build/ocaml.log
 exit 0
 
 

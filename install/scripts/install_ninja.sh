@@ -8,12 +8,13 @@ URL="http://github.com/martine/ninja/archive/v1.5.3.tar.gz"
 
 function _install()
 {
+  cd .. ; QMCCHEM_PATH="$PWD" ; cd -
   set -e
   set -u
   cd "${BUILD}"
   ./configure.py --bootstrap
   cd -
-  mv "${BUILD}/ninja" ../bin/
+  mv "${BUILD}/ninja" "${QMCCHEM_PATH}"/bin/
   return 0 
 }
 

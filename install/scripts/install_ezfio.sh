@@ -4,11 +4,9 @@ TARGET=ezfio
 
 function _install()
 {
+  cd .. ; QMCCHEM_PATH="$PWD" ; cd -
   set -e
   set -u
-  cd ..
-  QMCCHEM_PATH="$PWD"
-  cd -
   rm -rf "${QMCCHEM_PATH}"/EZFIO
   cd "${BUILD}"/config
   rm -f -- qmc.config properties.config
