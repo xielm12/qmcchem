@@ -29,6 +29,19 @@ diffusion Monte Carlo algorithm.
 software including (via compiler) GPL-licensed code must also be made available
 under the GPL along with build & install instructions.
 
+Requirements
+------------
+
+* Ninja building system (replacement for GNU make)
+* EZFIO library generator
+* ZeroMQ library
+* ZeroMQ Fortran77 binding
+* IRPF90 Fortran code generator
+* OCaml compiler
+* Fortran compiler (Intel Fortran recommended)
+
+All the dependencies will be downloaded automatically
+
 Example of a QMC=Chem calculation
 ---------------------------------
 

@@ -1,0 +1,76 @@
+# This script should be run in the install dircetory
+
+# URLs
+######
+
+URL_OPAM  ="http://raw.github.com/ocaml/opam/master/shell/opam_installer.sh"
+URL_IRPF90="http://github.com/scemama/irpf90/archive/v1.6.7.tar.gz"
+URL_EZFIO ="http://github.com/scemama/EZFIO/archive/v1.3.1.tar.gz"
+
+URL_ZMQ   ="http://download.zeromq.org/zeromq-4.0.7.tar.gz"
+#URL_ZMQ   ="http://download.zeromq.org/zeromq-4.1.3.tar.gz"
+URL_F77ZMQ="http://github.com/scemama/f77_zmq/archive/v4.1.3.tar.gz"
+
+# Rules
+#######
+
+rule download
+  command = wget ${url} -O ${out} -o /dev/null
+  description = Downloading ${descr}
+
+rule install
+  command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1 &&  touch _build/${target}.ok || cat _build/${target}.log
+  description = Installing ${descr}
+
+
+# Builds
+########
+
+build Downloads/irpf90.tar.gz: download 
+  url = ${URL_IRPF90}
+  descr = IRPF90 code generator
+
+build Downloads/ezfio.tar.gz: download 
+  url = ${URL_EZFIO}
+  descr = EZFIO I/O library generator
+
+build Downloads/zmq.tar.gz: download 
+  url = ${URL_ZMQ}
+  descr = ZeroMQ communication library
+
+build Downloads/f77_zmq.tar.gz: download 
+  url = ${URL_F77ZMQ}
+  descr = Fortran ZeroMQ interface
+
+build Downloads/opam_installer.sh: download
+  url = ${URL_OPAM}
+  descr = OCaml OPAM installer
+
+build _build/irpf90.ok ../bin/irpman ../bin/irpf90: install | Downloads/irpf90.tar.gz 
+  target = irpf90
+  descr = IRPF90
+
+build _build/zmq.ok ../lib/libzmq.a ../lib/libzmq.so.4 ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h: install | Downloads/zmq.tar.gz 
+  target = zmq
+  descr = ZeroMQ
+
+build _build/ezfio.ok: install | Downloads/ezfio.tar.gz  _build/irpf90.ok ../bin/irpman ../bin/irpf90
+  target = ezfio
+  descr = EZFIO
+
+build _build/f77_zmq.ok ../src/ZMQ/f77_zmq.h ../lib/libf77zmq.a ../lib/libf77zmq.so: install | Downloads/f77_zmq.tar.gz  _build/zmq.ok ../lib/libzmq.a ../lib/libzmq.so.4 ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h
+  target = f77_zmq
+  descr = Fortran ZeroMQ interface
+
+build _build/qmcchemrc.ok ../qmcchemrc: install | _build/irpf90.ok ../bin/irpman ../bin/irpf90 _build/ezfio.ok
+  target = qmcchemrc
+  description = QMC=Chem environment variables
+
+build _build/ocaml.ok ../bin/opam: install | Downloads/opam_installer.sh  _build/qmcchemrc.ok ../qmcchemrc
+  target = ocaml
+  descr = Ocaml compiler
+
+build _build/ocaml_zmq.ok: install | ../bin/opam ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h _build/ocaml.ok _build/zmq.ok ../lib/libzmq.a ../lib/libzmq.so.4 ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h
+  target = ocaml_zmq
+  descr = Ocaml ZeroMQ interface
+
