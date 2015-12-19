@@ -14,7 +14,9 @@ then
    exit 1
 fi
 
+set +u
 source "${QMCCHEM_PATH}"/qmcchemrc
+set -u
 cd Downloads 
 chmod +x opam_installer.sh
 
