@@ -20,7 +20,7 @@ rule download
 
 rule install
   command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1 &&  touch _build/${target}.ok || cat _build/${target}.log
-  description = Installing ${descr}
+  description = Installing ${descr} \t| tail -f install/_build/${target}.log 
 
 
 # Builds
@@ -68,9 +68,9 @@ build _build/qmcchemrc.ok ../qmcchemrc: install | _build/irpf90.ok ../bin/irpman
 
 build _build/ocaml.ok ../bin/opam: install | Downloads/opam_installer.sh  _build/qmcchemrc.ok ../qmcchemrc
   target = ocaml
-  descr = Ocaml compiler
+  descr = OCaml compiler 
 
 build _build/ocaml_zmq.ok: install | ../bin/opam ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h _build/ocaml.ok _build/zmq.ok ../lib/libzmq.a ../lib/libzmq.so.4 ../lib/libzmq.so ../lib/zmq.h ../lib/zmq_utils.h
   target = ocaml_zmq
-  descr = Ocaml ZeroMQ interface
+  descr = OCaml ZeroMQ interface
 

@@ -1,0 +1,6 @@
+true: package(core,sexplib.syntax,cryptokit,str,ZMQ)
+true: thread
+true:rpath
+#true: static
+
+
