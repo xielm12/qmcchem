@@ -26,9 +26,13 @@ diffusion Monte Carlo algorithm.
   in Cloud environments (rance Grilles) coupled to supercomputers 
 
 
-*Warning*: QMC=Chem is under the GPLv2 license. Any modifications to or
-software including (via compiler) GPL-licensed code must also be made available
-under the GPL along with build & install instructions.
+Warnings:
+* QMC=Chem is under the GPLv2 license. Any modifications to or
+  software including (via compiler) GPL-licensed code must also be made available
+  under the GPL along with build & install instructions.
+* Pseudopotentials are about to change in EZFIO database. Current calculations
+  will not be compatible with future versions
+
 
 Requirements
 ------------
