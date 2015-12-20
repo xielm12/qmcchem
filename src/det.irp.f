@@ -829,7 +829,6 @@ END_PROVIDER
               slater_matrix_alpha_inv_det,                             &
               ddet)
           if (ddet /= 0.d0) then
-            n_updates_det += 1.d0
             det_alpha_value_curr = ddet
           else
             n_to_do += 1
@@ -939,7 +938,6 @@ END_PROVIDER
               slater_matrix_beta_inv_det,                                &
               ddet)
           if (ddet /= 0.d0) then
-            n_updates_det += 1.d0
             det_beta_value_curr = ddet
           else
             n_to_do += 1
