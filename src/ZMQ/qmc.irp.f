@@ -61,7 +61,6 @@ subroutine run_qmc(cpu0)
  implicit none
  include '../types.F'
  include '../deriv_var.F'
- include '../deriv_ene.F'
  
  integer*8                      :: cpu0
  integer                        :: isize, i, j, ierr
@@ -106,8 +105,7 @@ subroutine run_qmc(cpu0)
 BEGIN_SHELL [ /usr/bin/python ]
 from properties import *
 
-derivlist = map(lambda x: x[1], properties)
-derivlist = filter(lambda x: x.startswith("d_var_"), derivlist)
+derivlist = []
 
 td = """
      do j=0,size($X_block_walk,1)-1,7
