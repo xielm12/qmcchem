@@ -853,9 +853,8 @@ END_PROVIDER
     
   ! Avoid NaN
   if (ddet /= 0.d0) then
-    n_updated_det += 1.d0
+    continue
   else
-    n_inverted_det += 1.d0
     do j=1,mo_closed_num
       !DIR$ VECTOR ALIGNED
       !DIR$ LOOP COUNT(100)
@@ -964,9 +963,8 @@ END_PROVIDER
   
   ! Avoid NaN
   if (ddet /= 0.d0) then
-    n_updated_det += 1.d0
+    continue
   else
-    n_inverted_det += 1.d0
     do j=1,mo_closed_num
       !DIR$ VECTOR UNALIGNED
       !DIR$ LOOP COUNT (100)

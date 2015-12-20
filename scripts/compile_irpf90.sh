@@ -29,7 +29,7 @@ then
   LIB="${LIB} ${QMCCHEM_PATH}/lib/libezfio_irp.a ${QMCCHEM_PATH}/lib/libf77zmq.a ${QMCCHEM_PATH}/lib/libzmq.a -lstdc++ -lrt"
   SRC="${SRC} ZMQ/f77_zmq_module.f90" 
   OBJ="${OBJ} IRPF90_temp/ZMQ/f77_zmq_module.o"
-  INCLUDES="${INCLUDES} -I AO -I SAMPLING -I TOOLS -I JASTROW -I TESTING -I MAIN -I PROPERTIES -I ZMQ"
+  INCLUDES="${INCLUDES} -I AO -I SAMPLING -I TOOLS -I JASTROW -I MAIN -I PROPERTIES -I ZMQ"
   IRPF90_FLAGS="${IRPF90_FLAGS} --ninja"
 
   # Check IRPF90 version
