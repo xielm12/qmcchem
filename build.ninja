@@ -1,0 +1,91 @@
+rule compile_ezfio
+  command = ./scripts/compile_ezfio.sh
+  description = Compiling the EZFIO library
+  pool = console
+
+rule build_properties_config
+  command = bash -c "source qmcchemrc ; exec python ./scripts/create_properties_ezfio.py"
+  pool = console
+
+rule compile_irpf90
+  command = ./scripts/compile_irpf90.sh
+  description = Compiling IRPF90
+  pool = console
+
+rule compile_src
+  command = ./scripts/compile_src.sh
+  description = Compiling src
+  pool = console
+
+rule create_archive
+  command = git archive --format tar.gz HEAD --prefix "QmcChem/" -7 -o qmcchem.tar.gz
+  description = Creating archive
+  pool = console
+
+rule compile_ocaml_dep
+  command = scripts/compile_ocaml_dep.sh
+  description = Finding dependencies in OCaml files
+  pool = console
+
+rule compile_ocaml
+  command = scripts/compile_ocaml.sh  $target
+  description = Compiling OCaml tools
+  pool = console
+
+rule copy_to_bin
+  command = bash -c "cp $in $out ; touch $out"
+  description = Copying $in into bin/
+  pool = console
+
+rule clean
+  command = ./scripts/clean.sh
+  pool = console
+
+# put all files of PROPERTIES here
+# --------------------------------
+
+build ezfio_config/properties.config: build_properties_config | src/PROPERTIES/density.irp.f src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/voronoi.irp.f src/PROPERTIES/properties_general.irp.f scripts/create_properties_python.py || src/IRPF90_temp/build.ninja
+
+# EZFIO 
+# -----
+
+build lib/libezfio.a lib/libezfio_irp.a EZFIO/lib/libezfio.a EZFIO/lib/libezfio_irp.a EZFIO/Ocaml/ezfio.ml EZFIO/Python/ezfio.py: compile_ezfio | ezfio_config/qmc.config ezfio_config/properties.config make.config scripts/create_properties_ezfio.py || src/tags src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
+
+# Fortran executables
+# -------------------
+
+build always: phony
+
+build src/tags src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja: compile_irpf90 | make.config always
+
+build src/MAIN/qmc src/MAIN/qmc_nozmq src/MAIN/qmc_create_walkers src/MAIN/qmcchem_info: compile_src | lib/libezfio.a lib/libezfio_irp.a src/tags || src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
+
+# Archive
+# -------
+
+build qmcchem.tar.gz: create_archive
+
+# Ocaml
+# -----
+
+build ocaml/generated.ninja : compile_ocaml_dep | always
+build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml 
+  target = qmcchem
+
+
+# Copy binaries in bin
+# --------------------
+
+build bin/qmc: copy_to_bin src/MAIN/qmc
+build bin/qmcchem_info: copy_to_bin src/MAIN/qmcchem_info
+build bin/qmc_create_walkers: copy_to_bin src/MAIN/qmc_create_walkers
+build bin/qmc_nozmq: copy_to_bin src/MAIN/qmc_nozmq
+build bin/qmcchem: copy_to_bin ocaml/qmcchem 
+
+default bin/qmc bin/qmcchem_info bin/qmc_create_walkers bin/qmc_nozmq bin/qmcchem 
+
+# Clean
+# -----
+
+build clean: clean
+

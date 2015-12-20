@@ -37,15 +37,48 @@ Warnings:
 Requirements
 ------------
 
-* Ninja building system (replacement for GNU make)
-* EZFIO library generator
-* ZeroMQ library
-* ZeroMQ Fortran77 binding
-* IRPF90 Fortran code generator
-* OCaml compiler
-* Fortran compiler (Intel Fortran recommended)
+* [Ninja build tool](http://github.com/martine/ninja)
+* [Ocaml compiler with Opam and Core library](http://github.com/ocaml)
+* [ZeroMQ high performance communication library](http://www.zeromq.org)
+* [F77_ZMQ ZeroMQ Fortran interface](http://github.com/scemama/f77_zmq/)
+* [IRPF90 Fortran code generator](http://irpf90.ups-tlse.fr)
+* [EZFIO Easy Fortran I/O library generator](http://github.com/scemama/EZFIO)
+* GNU C++ Compiler (g++) for ZeroMQ
+* Python >= 2.6 for install scripts
+* Bash
+* Fortran compiler, Intel Fortran recommended
+* Lapack library, Intel MKL recommended
 
-All the dependencies will be downloaded automatically
+
+Most of the dependencies are open-source will be downloaded automatically.
+The Fortran and C++ compilers, Python and Bash interpreters and the Lapack
+library need to be installed manually by the user.
+
+Installation
+------------
+
+This script will first download the [Ninja](http://github.com/martine/ninja)
+build tool, and will then run Ninja using the ``install/build.ninja`` file.
+The configuration script will work in the ``install`` directory.  It will first
+download into the ``install/Downloads`` directory everything that needs to be
+installed. The building of the dependencies takes place in the ``install/_build``
+directory, and the packages that are being installed can be followed by looking
+at the log files in this directory. When a package was successfully installed,
+a ``*.ok`` file is created and the log file is deleted.
+
+Before using or compiling QMC=Chem, environment variables need to be loaded. The
+environment variables are located in the ``qmcchemrc`` file:
+
+```bash
+$ source qmcchemrc
+```
+
+To compile the program, run
+
+```bash
+$ ninja
+```
+
 
 Example of a QMC=Chem calculation
 ---------------------------------

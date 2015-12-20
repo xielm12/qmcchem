@@ -13,15 +13,12 @@ program qmcchem_info
   endif
   print *,  'Number of determinants                   : ', det_num
   print *,  'Number of unique alpha/beta determinants : ', det_alpha_num, det_beta_num
-!  print *,  'Number of vectors in SVD                 : ', psi_svd_size
   print *,  'Closed-shell MOs                         : ', mo_closed_num
   print *,  'Number of MOs in determinants            : ', num_present_mos
-!  print *,  'do SVD?                                  : ', do_det_svd
-!  print *,  'det_coef matrix is sparse                : ', det_coef_matrix_is_sparse
-  print *,  'Det alpha norm:'
-  print *,  det_alpha_norm
-  print *,  'Det beta norm:'
-  print *,  det_beta_norm
+!  print *,  'Det alpha norm:'
+!  print *,  det_alpha_norm
+!  print *,  'Det beta norm:'
+!  print *,  det_beta_norm
   call step1
   call cpu_time (cpu0)
   call step2(imax)

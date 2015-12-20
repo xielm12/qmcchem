@@ -7,7 +7,6 @@ then
 fi
 
 cd ${QMCCHEM_PATH}/ocaml || exit -1
-cp ${QMCCHEM_PATH}/EZFIO/Ocaml/ezfio.ml . || exit -1
 
 LSMD5_FILE=${QMCCHEM_PATH}/ocaml/.ls_md5
 FILES="*.ml *.mli"
@@ -20,16 +19,21 @@ then
   REF=$(cat ${LSMD5_FILE})
 fi
 
-
 if [[ ${MD5} != ${REF} ]]
 then
   echo ${MD5} > ${LSMD5_FILE}
   echo Finding dependencies in OCaml files
   python ./ninja_ocaml.py
+  if [[ ! -f qptypes_generator ]]
+  then
+    ninja -f generated.ninja qptypes_generator
+  fi
+  if [[ ! -f Qptypes.ml ]]
+  then
+    ./qptypes_generator
+    python ./ninja_ocaml.py
+  fi
+
 fi
-
-ninja ${@}
-
-
 
 
