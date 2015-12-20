@@ -60,7 +60,6 @@ subroutine run_qmc(cpu0)
  use f77_zmq
  implicit none
  include '../types.F'
- include '../deriv_var.F'
  
  integer*8                      :: cpu0
  integer                        :: isize, i, j, ierr
