@@ -1,0 +1,84 @@
+
+MAIN=qmcchem
+# Main program to build
+
+PACKAGES=-package core,sexplib.syntax,cryptokit,str,ZMQ
+# Required opam packages, for example:
+# PACKAGES=-package core,sexplib.syntax
+
+THREAD=-thread 
+# If you need threding support, use:
+# THREAD=-thread
+
+SYNTAX=-syntax camlp4o 
+# If you need pre-processing, use:
+# SYNTAX=-syntax camlp4o
+
+OCAMLC_FLAGS=-g -warn-error A
+# Flags to give to ocamlc, for example:
+# OCAMLC_FLAGS=-g -warn-error A
+
+LINK_FLAGS=-cclib '-Wl,-rpath=../lib,--enable-new-dtags'
+# Flags to give to the linker, for example:
+# LINK_FLAGS=-cclib '-Wl,-rpath=../lib,--enable-new-dtags'
+
+GENERATED_NINJA=generated.ninja
+# Name of the auto-generated ninja file
+
+rule run_ninja
+  command = ../scripts/compile_ocaml.sh $target
+  description = Compiling OCaml executables
+  pool = console
+
+rule run_ninja_ocaml
+  command = ../scripts/compile_ocaml_dep.sh
+  description = Finding dependencies in OCaml files
+
+rule run_clean
+  command = ninja -f $GENERATED_NINJA -t clean ; rm -f $GENERATED_NINJA rm -f *.cmx *.cmi *.o .ls_md5
+  pool = console
+  description = Cleaning directory
+
+rule ocamlc
+  command = ocamlfind ocamlc -c $OCAMLC_FLAGS $THREAD $PACKAGES $SYNTAX -o $out $in
+  description = Compiling $in (bytecode)
+
+rule ocamlopt
+  command = ocamlfind ocamlopt -c $OCAMLC_FLAGS $THREAD $PACKAGES $SYNTAX -o $out $in
+  description = Compiling $in (native)
+
+rule ocamlc_link
+  command = ocamlfind ocamlc $OCAMLC_FLAGS $THREAD $LINK_FLAGS $PACKAGES $SYNTAX -o $out $in 
+  description = Compiling $out (bytecode)
+
+rule ocamlopt_link
+  command = ocamlfind ocamlopt $OCAMLC_FLAGS $THREAD $LINK_FLAGS $PACKAGES $SYNTAX -o $out $in 
+  description = Compiling $out (native)
+
+rule create_qptypes
+  command = ./$in 
+  description = Creating $out
+
+rule copy
+  command = cp $in $out 
+  description = Copying $in to $out
+
+build always: phony
+build $GENERATED_NINJA: run_ninja_ocaml | always
+build ezfio.ml: copy ../EZFIO/Ocaml/ezfio.ml
+build Qptypes.ml: create_qptypes qptypes_generator
+build qptypes_generator: run_ninja | $GENERATED_NINJA 
+  target = qptypes_generator
+
+build clean: run_clean 
+
+build $MAIN: run_ninja | $GENERATED_NINJA ezfio.ml Qptypes.ml
+  target = $MAIN
+
+build all: run_ninja | ezfio.ml $GENERATED_NINJA Qptypes.ml
+  target = 
+
+default $MAIN
+
+
+
