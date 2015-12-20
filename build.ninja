@@ -58,7 +58,7 @@ build always: phony
 
 build src/tags src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja: compile_irpf90 | make.config always
 
-build src/MAIN/qmc src/MAIN/qmc_nozmq src/MAIN/qmc_create_walkers src/MAIN/qmcchem_info: compile_src | lib/libezfio.a lib/libezfio_irp.a src/tags || src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
+build src/MAIN/qmc src/MAIN/qmc_create_walkers src/MAIN/qmcchem_info: compile_src | lib/libezfio.a lib/libezfio_irp.a src/tags || src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
 
 # Archive
 # -------
@@ -79,10 +79,9 @@ build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml
 build bin/qmc: copy_to_bin src/MAIN/qmc
 build bin/qmcchem_info: copy_to_bin src/MAIN/qmcchem_info
 build bin/qmc_create_walkers: copy_to_bin src/MAIN/qmc_create_walkers
-build bin/qmc_nozmq: copy_to_bin src/MAIN/qmc_nozmq
 build bin/qmcchem: copy_to_bin ocaml/qmcchem 
 
-default bin/qmc bin/qmcchem_info bin/qmc_create_walkers bin/qmc_nozmq bin/qmcchem 
+default bin/qmc bin/qmcchem_info bin/qmc_create_walkers bin/qmcchem 
 
 # Clean
 # -----
