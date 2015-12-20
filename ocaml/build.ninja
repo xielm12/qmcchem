@@ -63,8 +63,8 @@ rule copy
   command = cp $in $out 
   description = Copying $in to $out
 
-build always: phony
-build $GENERATED_NINJA: run_ninja_ocaml | always
+build always: phony | ezfio.ml 
+build $GENERATED_NINJA: run_ninja_ocaml | always 
 build ezfio.ml: copy ../EZFIO/Ocaml/ezfio.ml
 build Qptypes.ml: create_qptypes qptypes_generator
 build qptypes_generator: run_ninja | $GENERATED_NINJA 
