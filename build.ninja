@@ -68,7 +68,7 @@ build qmcchem.tar.gz: create_archive
 # Ocaml
 # -----
 
-build ocaml/generated.ninja : compile_ocaml_dep | always
+build ocaml/generated.ninja : compile_ocaml_dep | EZFIO/Ocaml/ezfio.ml always
 build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml 
   target = qmcchem
 
