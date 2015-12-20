@@ -44,7 +44,7 @@ rule clean
 # put all files of PROPERTIES here
 # --------------------------------
 
-build ezfio_config/properties.config: build_properties_config | src/PROPERTIES/density.irp.f src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/voronoi.irp.f src/PROPERTIES/properties_general.irp.f scripts/create_properties_python.py || src/IRPF90_temp/build.ninja
+build ezfio_config/properties.config: build_properties_config | scripts/create_properties_python.py src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/properties_general.irp.f || src/IRPF90_temp/build.ninja
 
 # EZFIO 
 # -----

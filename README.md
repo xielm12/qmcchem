@@ -57,14 +57,17 @@ library need to be installed manually by the user.
 Installation
 ------------
 
-This script will first download the [Ninja](http://github.com/martine/ninja)
-build tool, and will then run Ninja using the ``install/build.ninja`` file.
-The configuration script will work in the ``install`` directory.  It will first
-download into the ``install/Downloads`` directory everything that needs to be
-installed. The building of the dependencies takes place in the ``install/_build``
-directory, and the packages that are being installed can be followed by looking
-at the log files in this directory. When a package was successfully installed,
-a ``*.ok`` file is created and the log file is deleted.
+The ``make.config`` file contains compiler specific parameters.
+
+The ``configure.sh`` script will first download the
+[Ninja](http://github.com/martine/ninja) build tool, and will then run Ninja
+using the ``install/build.ninja`` file.  The configuration script will work in
+the ``install`` directory.  It will first download into the
+``install/Downloads`` directory everything that needs to be installed. The
+building of the dependencies takes place in the ``install/_build`` directory,
+and the packages that are being installed can be followed by looking at the log
+files in this directory. When a package was successfully installed, a ``*.ok``
+file is created and the log file is deleted.
 
 Before using or compiling QMC=Chem, environment variables need to be loaded. The
 environment variables are located in the ``qmcchemrc`` file:
