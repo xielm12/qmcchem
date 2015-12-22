@@ -124,20 +124,6 @@ BEGIN_PROVIDER [ integer, ao_power_transp, (4,ao_num) ]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ integer , ao_class, (ao_num_8) ]
-  implicit none
-  include '../types.F'
-  BEGIN_DOC
-! t_Slater or t_Gaussian
-  END_DOC
-
-  integer                        :: i
-  do i=1,ao_num
-    ao_class(i) = t_Gaussian
-  enddo
-
-END_PROVIDER
-
 
 BEGIN_PROVIDER [ integer , ao_power_max ]
   implicit none

@@ -44,7 +44,7 @@ rule clean
 # put all files of PROPERTIES here
 # --------------------------------
 
-build ezfio_config/properties.config: build_properties_config | src/PROPERTIES/density.irp.f src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/voronoi.irp.f src/PROPERTIES/properties_general.irp.f scripts/create_properties_python.py || src/IRPF90_temp/build.ninja
+build ezfio_config/properties.config: build_properties_config | scripts/create_properties_python.py src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/properties_general.irp.f || src/IRPF90_temp/build.ninja
 
 # EZFIO 
 # -----
@@ -58,7 +58,7 @@ build always: phony
 
 build src/tags src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja: compile_irpf90 | make.config always
 
-build src/MAIN/qmc src/MAIN/qmc_nozmq src/MAIN/qmc_create_walkers src/MAIN/qmcchem_info: compile_src | lib/libezfio.a lib/libezfio_irp.a src/tags || src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
+build src/MAIN/qmc src/MAIN/qmc_create_walkers src/MAIN/qmcchem_info: compile_src | lib/libezfio.a lib/libezfio_irp.a src/tags || src/irpf90_entities src/irpf90.make src/IRPF90_temp/build.ninja
 
 # Archive
 # -------
@@ -68,7 +68,7 @@ build qmcchem.tar.gz: create_archive
 # Ocaml
 # -----
 
-build ocaml/generated.ninja : compile_ocaml_dep | always
+build ocaml/generated.ninja : compile_ocaml_dep | EZFIO/Ocaml/ezfio.ml always
 build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml 
   target = qmcchem
 
@@ -79,10 +79,9 @@ build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml
 build bin/qmc: copy_to_bin src/MAIN/qmc
 build bin/qmcchem_info: copy_to_bin src/MAIN/qmcchem_info
 build bin/qmc_create_walkers: copy_to_bin src/MAIN/qmc_create_walkers
-build bin/qmc_nozmq: copy_to_bin src/MAIN/qmc_nozmq
 build bin/qmcchem: copy_to_bin ocaml/qmcchem 
 
-default bin/qmc bin/qmcchem_info bin/qmc_create_walkers bin/qmc_nozmq bin/qmcchem 
+default bin/qmc bin/qmcchem_info bin/qmc_create_walkers bin/qmcchem 
 
 # Clean
 # -----

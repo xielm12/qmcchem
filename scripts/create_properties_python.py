@@ -51,10 +51,6 @@ for filename in files:
         dims[current_prop] = line.split(':')[1].strip()
 
 
-import numerical_derivatives as deriv
-properties += map(lambda x: ["double precision", "d_var_"+x.lower(), "(size_d_var_"+x.lower()+")"], deriv.vectors)
-properties += map(lambda x: ["double precision", "d_var_"+x.lower(), "(7)"], deriv.scalars)
-
 
 def sq(item):
   return [item[0], item[1]+"_2", item[2]]

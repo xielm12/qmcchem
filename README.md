@@ -1,10 +1,10 @@
 QMC=Chem : Quantum Monte Carlo for Chemistry
 ============================================
 
-**This repository is under migration to GitHub. Please be patient...**
+**This repository is under migration to GitHub. This version may not be fully working. Please be patient...**
 
 QMC=Chem is the quantum Monte Carlo program of the
-[Toulouse group](http://qmcchem.ups-tlse.fr).
+[Toulouse (France) group](http://qmcchem.ups-tlse.fr).
 It is meant to be used in the *post-Full-CI* context : a quasi-Full-CI
 calculation is done with the
 [quantum package](https://github.com/LCPQ/quantum_package),
@@ -57,14 +57,17 @@ library need to be installed manually by the user.
 Installation
 ------------
 
-This script will first download the [Ninja](http://github.com/martine/ninja)
-build tool, and will then run Ninja using the ``install/build.ninja`` file.
-The configuration script will work in the ``install`` directory.  It will first
-download into the ``install/Downloads`` directory everything that needs to be
-installed. The building of the dependencies takes place in the ``install/_build``
-directory, and the packages that are being installed can be followed by looking
-at the log files in this directory. When a package was successfully installed,
-a ``*.ok`` file is created and the log file is deleted.
+The ``make.config`` file contains compiler specific parameters.
+
+The ``configure.sh`` script will first download the
+[Ninja](http://github.com/martine/ninja) build tool, and will then run Ninja
+using the ``install/build.ninja`` file.  The configuration script will work in
+the ``install`` directory.  It will first download into the
+``install/Downloads`` directory everything that needs to be installed. The
+building of the dependencies takes place in the ``install/_build`` directory,
+and the packages that are being installed can be followed by looking at the log
+files in this directory. When a package was successfully installed, a ``*.ok``
+file is created and the log file is deleted.
 
 Before using or compiling QMC=Chem, environment variables need to be loaded. The
 environment variables are located in the ``qmcchemrc`` file:
