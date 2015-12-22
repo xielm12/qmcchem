@@ -201,7 +201,9 @@ END_PROVIDER
 &BEGIN_PROVIDER [ real, ao_coef, (ao_num_8,ao_prim_num_max) ]
   implicit none
   BEGIN_DOC
-! Exponents and coefficients of the atomic orbitals
+! Exponents and coefficients of the atomic orbitals.
+! AO coefficients are such that the AOs are normalized, and the primitives
+! are also normalized
   END_DOC
 
   ao_expo = 0.
@@ -268,6 +270,26 @@ END_PROVIDER
       pow(2) = ao_power_transp(2,i)
       pow(3) = ao_power_transp(3,i)
       norm = goverlap(ao_expo(i,j),ao_expo(i,j),pow)
+      ao_coef(i,j) = ao_coef(i,j)/sqrt(norm)
+    enddo
+  enddo
+
+
+! Normalization of the contracted AOs 
+! -----------------------------------
+
+  integer                        :: k
+  do i=1,ao_num
+    pow(1) = ao_power_transp(1,i)
+    pow(2) = ao_power_transp(2,i)
+    pow(3) = ao_power_transp(3,i)
+    norm = 0.d0
+    do j=1,ao_prim_num(i)
+      do k=1,ao_prim_num(i)
+        norm = norm + ao_coef(i,j) * ao_coef(i,k) * goverlap(ao_expo(i,j),ao_expo(i,k),pow)
+      enddo
+    enddo
+    do j=1,ao_prim_num(i)
       ao_coef(i,j) = ao_coef(i,j)/sqrt(norm)
     enddo
   enddo
