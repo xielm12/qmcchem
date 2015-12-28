@@ -1,0 +1,13 @@
+.ninja_deps
+.ninja_log
+EZFIO
+install/Downloads
+install/_build
+lib
+irpf90
+qmcchemrc
+make.config
+src/ZMQ/f77_zmq.h
+ezfio_config/properties.config
+bin/
+

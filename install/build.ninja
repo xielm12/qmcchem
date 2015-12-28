@@ -20,7 +20,7 @@ rule download
 
 rule install
   command = ./scripts/install_${target}.sh > _build/${target}.log 2>&1 &&  touch _build/${target}.ok || cat _build/${target}.log
-  description = Installing ${descr} 	| tail -f install/_build/${target}.log 
+  description = Installing ${descr} | tail -f install/_build/${target}.log 
 
 
 # Builds

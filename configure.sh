@@ -18,7 +18,25 @@ then
   fi
   touch _build/ninja.ok
 fi
-touch "${QMCCHEM_PATH}"/{src,ocaml}/ls_md5
+touch "${QMCCHEM_PATH}"/{src,ocaml}/.ls_md5
 exec "${QMCCHEM_PATH}"/bin/ninja "$@"
 
+if [[ ! -f make.config ]]
+then
+  which ifort > /dev/null
+  if [[ $? ]] 
+  then
+    cp make.config.ifort make.config
+  else
+    cp make.config.gfortran make.config
+  fi
+fi
+
+echo "====================================================================="
+echo "Configuration OK."
+echo "Now, source the qmcchemrc file:"
+echo ""
+echo "source qmcchemrc"
+echo ""
+echo "====================================================================="
 

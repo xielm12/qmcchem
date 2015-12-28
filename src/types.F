@@ -16,19 +16,19 @@
       integer, parameter :: t_Stopping = 3
 
       character*(32)     :: types(15) = &
-      (/  '',               &
-          '',               &
-          'Brownian',       &
-          'Langevin',       &
-          '',               &
-          '',               &
-          'VMC         ',   &
-          'DMC         ',   &
-          '            ',   &
-          '',               &
-          'Simple      ',   &
-          'None        ',   &
-          '            ',   &
-          'Core        ',   &
-          '            '/)
+      (/  '               ',   &
+          '               ',   &
+          'Brownian       ',   &
+          'Langevin       ',   &
+          '               ',   &
+          '               ',   &
+          'VMC            ',   &
+          'DMC            ',   &
+          '               ',   &
+          '               ',   &
+          'Simple         ',   &
+          'None           ',   &
+          '               ',   &
+          'Core           ',   &
+          '               '/)
 

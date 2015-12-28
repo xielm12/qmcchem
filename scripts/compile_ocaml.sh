@@ -8,6 +8,4 @@ fi
 
 cd ${QMCCHEM_PATH}/ocaml || exit -1
 
-cp ${QMCCHEM_PATH}/EZFIO/Ocaml/ezfio.ml . || exit -1
-
 exec ninja -f generated.ninja ${@}

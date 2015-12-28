@@ -217,7 +217,7 @@ BEGIN_PROVIDER [ double precision, ci_threshold ]
   END_DOC
   ci_threshold = 0.d0
   call get_simulation_ci_threshold(ci_threshold)
-  call rinfo(irp_here,'ci_threshold',ci_threshold)
+  call dinfo(irp_here,'ci_threshold',ci_threshold)
   
 END_PROVIDER
 

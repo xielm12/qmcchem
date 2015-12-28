@@ -50,7 +50,7 @@ subroutine zmq_ezfio_get_logical(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   integer                        :: rc
@@ -61,11 +61,27 @@ subroutine zmq_ezfio_get_logical(cmd_in,w,d)
 
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_logical2(buffer,buffer_size,w,d)
+  deallocate(buffer)
+end
+
+subroutine zmq_ezfio_get_logical2(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a logical variable in EZFIO using ZMQ
+  END_DOC
+  
+  integer, intent(in)            :: d
+  logical, intent(out)           :: w(d)
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
 
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
   read( buffer(1:rc), *) w(1:d)
-  deallocate(buffer)
 end
 
 
@@ -82,7 +98,7 @@ subroutine zmq_ezfio_get_double_precision(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   integer                        :: rc
@@ -93,14 +109,28 @@ subroutine zmq_ezfio_get_double_precision(cmd_in,w,d)
   
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
-  
-  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
-  read( buffer(1:rc), *) w(1:d)
-  
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_double_precision2(buffer,buffer_size,w,d)
   deallocate(buffer)
 end
 
+subroutine zmq_ezfio_get_double_precision2(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a double precision variable in EZFIO using ZMQ
+  END_DOC
+  
+  integer, intent(in)            :: d
+  double precision, intent(out)  :: w(d)
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
+
+  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
+  read( buffer(1:rc), *) w(1:d)
+end
 
 subroutine zmq_ezfio_get_integer(cmd_in,w,d)
   implicit none
@@ -114,7 +144,7 @@ subroutine zmq_ezfio_get_integer(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   integer                        :: rc
@@ -125,14 +155,28 @@ subroutine zmq_ezfio_get_integer(cmd_in,w,d)
   
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
-  
-  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
-  read( buffer(1:rc), *) w(1:d)
-  
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_integer2(buffer,buffer_size,w,d)
   deallocate(buffer)
 end
 
+subroutine zmq_ezfio_get_integer2(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a integer variable in EZFIO using ZMQ
+  END_DOC
+  
+  integer, intent(in)            :: d
+  integer, intent(out)           :: w(d)
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
+
+  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
+  read( buffer(1:rc), *) w(1:d)
+end
 
 subroutine zmq_ezfio_get_integer8(cmd_in,w,d)
   implicit none
@@ -146,7 +190,7 @@ subroutine zmq_ezfio_get_integer8(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   integer                        :: rc
@@ -157,12 +201,27 @@ subroutine zmq_ezfio_get_integer8(cmd_in,w,d)
   
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_integer82(buffer,buffer_size,w,d)
+  deallocate(buffer)
+end
+
+subroutine zmq_ezfio_get_integer82(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a integer variable in EZFIO using ZMQ
+  END_DOC
   
+  integer, intent(in)            :: d
+  integer*8, intent(out)         :: w(d)
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
+
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
   read( buffer(1:rc), *) w(1:d)
-  
-  deallocate(buffer)
 end
 
 
@@ -180,7 +239,7 @@ subroutine zmq_ezfio_get_real(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   
@@ -190,13 +249,29 @@ subroutine zmq_ezfio_get_real(cmd_in,w,d)
   
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
-  
-  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
-  read( buffer(1:rc), *) w(1:d)
-  
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_real2(buffer,buffer_size,w,d)
   deallocate(buffer)
 end
+
+subroutine zmq_ezfio_get_real2(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a real variable in EZFIO using ZMQ
+  END_DOC
+  
+  integer, intent(in)            :: d
+  real, intent(out)              :: w(d)
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
+
+  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
+  read( buffer(1:rc), *) w(1:d)
+end
+
 
 
 subroutine zmq_ezfio_get_character(cmd_in,w,d)
@@ -213,7 +288,7 @@ subroutine zmq_ezfio_get_character(cmd_in,w,d)
   character*(*)                  :: cmd_in
   character*(128)                :: cmd
   
-  character(len=:), allocatable  :: buffer
+  character(len=1), allocatable  :: buffer(:)
   integer                        :: buffer_size
   character*(20)                 :: buffer_size_char
   
@@ -223,12 +298,29 @@ subroutine zmq_ezfio_get_character(cmd_in,w,d)
   
   rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer_size_char, len(buffer_size_char), ZMQ_SNDMORE)
   read(buffer_size_char(1:rc),*) buffer_size
-  allocate (character(len=buffer_size) :: buffer)
-  
-  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
-  read( buffer(1:rc), '(A)') w
-  
+  allocate (buffer(buffer_size+1))
+  buffer = ' '
+  call zmq_ezfio_get_character2(buffer,buffer_size,w,d)
   deallocate(buffer)
 end
+
+
+subroutine zmq_ezfio_get_character2(buffer,buffer_size,w,d)
+  implicit none
+  use f77_zmq
+  BEGIN_DOC
+! Fetch a character variable in EZFIO using ZMQ
+  END_DOC
+  
+  integer, intent(in)            :: d
+  character*(*),    intent(out)  :: w
+  integer, intent(in)            :: buffer_size
+  character(len=buffer_size), intent(inout) :: buffer
+  integer                        :: rc
+
+  rc = f77_zmq_recv(zmq_to_dataserver_socket, buffer, buffer_size, 0)
+  w = buffer(1:buffer_size)
+end
+
 
 

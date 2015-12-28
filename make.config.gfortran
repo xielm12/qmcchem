@@ -1,0 +1,18 @@
+# CPU type
+
+## ALIGNMENT
+
+CPU_TYPE="-mavx" 
+
+## FORTRAN compiler
+FC="gfortran -ffree-line-length-none"
+NINJA="ninja"
+FCFLAGS="-O2 -g ${CPU_TYPE}"
+LIB="-lblas -llapack"
+
+## IRPF90
+IRPF90="${QMCCHEM_PATH}/bin/irpf90"
+IRPF90_FLAGS="--align=16"
+
+export FC NINJA FCFLAGS LIB IRPF90 IRPF90_FLAGS
+

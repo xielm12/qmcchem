@@ -1,0 +1,12 @@
+*.cmi
+*.cmx
+*.o
+ezfio.ml
+Qptypes.ml
+.ls_md5
+.ninja_deps
+.ninja_log
+generated.ninja
+qmcchem
+qptypes_generator
+
