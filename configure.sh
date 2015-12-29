@@ -19,7 +19,9 @@ then
   touch _build/ninja.ok
 fi
 touch "${QMCCHEM_PATH}"/{src,ocaml}/.ls_md5
-exec "${QMCCHEM_PATH}"/bin/ninja "$@"
+"${QMCCHEM_PATH}"/bin/ninja "$@"
+
+cd "${QMCCHEM_PATH}"
 
 if [[ ! -f make.config ]]
 then
@@ -34,9 +36,10 @@ fi
 
 echo "====================================================================="
 echo "Configuration OK."
-echo "Now, source the qmcchemrc file:"
+echo "Now, source the qmcchemrc file and build the program:"
 echo ""
 echo "source qmcchemrc"
+echo "ninja"
 echo ""
 echo "====================================================================="
 
