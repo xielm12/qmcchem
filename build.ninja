@@ -44,7 +44,7 @@ rule clean
 # put all files of PROPERTIES here
 # --------------------------------
 
-build ezfio_config/properties.config: build_properties_config | scripts/create_properties_python.py src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/properties_general.irp.f || src/IRPF90_temp/build.ninja
+build ezfio_config/properties.config ocaml/Property.ml: build_properties_config | scripts/create_properties_python.py src/PROPERTIES/properties.irp.f src/PROPERTIES/properties_energy.irp.f src/PROPERTIES/properties_general.irp.f || src/IRPF90_temp/build.ninja
 
 # EZFIO 
 # -----
@@ -68,7 +68,7 @@ build qmcchem.tar.gz: create_archive
 # Ocaml
 # -----
 
-build ocaml/generated.ninja : compile_ocaml_dep | EZFIO/Ocaml/ezfio.ml always || src/irpf90.make
+build ocaml/generated.ninja : compile_ocaml_dep | EZFIO/Ocaml/ezfio.ml ocaml/Property.ml always
 build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml 
   target = qmcchem
 

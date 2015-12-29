@@ -17,7 +17,7 @@ OCAMLC_FLAGS=-g -warn-error A
 # Flags to give to ocamlc, for example:
 # OCAMLC_FLAGS=-g -warn-error A
 
-LINK_FLAGS=-cclib '-Wl,-rpath=../lib,--enable-new-dtags'
+LINK_FLAGS=
 # Flags to give to the linker, for example:
 # LINK_FLAGS=-cclib '-Wl,-rpath=../lib,--enable-new-dtags'
 
@@ -34,7 +34,7 @@ rule run_ninja_ocaml
   description = Finding dependencies in OCaml files
 
 rule run_clean
-  command = ninja -f $GENERATED_NINJA -t clean ; rm -f $GENERATED_NINJA rm -f *.cmx *.cmi *.o .ls_md5
+  command = ninja -f $GENERATED_NINJA -t clean ; rm -f $GENERATED_NINJA rm -f *.cmx *.cmi *.o .ls_md5 ; ninja -t clean
   pool = console
   description = Cleaning directory
 
@@ -51,7 +51,7 @@ rule ocamlc_link
   description = Compiling $out (bytecode)
 
 rule ocamlopt_link
-  command = ocamlfind ocamlopt $OCAMLC_FLAGS $THREAD $LINK_FLAGS $PACKAGES $SYNTAX -o $out $in 
+  command = ocamlfind ocamlopt $OCAMLC_FLAGS $THREAD -linkpkg $PACKAGES $PACKAGES $SYNTAX -o $out $in 
   description = Compiling $out (native)
 
 rule create_qptypes
@@ -62,19 +62,19 @@ rule copy
   command = cp $in $out 
   description = Copying $in to $out
 
-build always: phony | ezfio.ml 
-build $GENERATED_NINJA: run_ninja_ocaml | always 
+build always: phony 
+build $GENERATED_NINJA: run_ninja_ocaml | Qptypes.ml ezfio.ml always 
 build ezfio.ml: copy ../EZFIO/Ocaml/ezfio.ml
-build Qptypes.ml: create_qptypes qptypes_generator
-build qptypes_generator: run_ninja | $GENERATED_NINJA  ezfio.ml
-  target = qptypes_generator
+build Qptypes.ml: create_qptypes qptypes_generator | ezfio.ml
+build qptypes_generator.o qptypes_generator.cmx: ocamlopt qptypes_generator.ml | ezfio.ml
+build qptypes_generator: ocamlopt_link qptypes_generator.cmx
 
 build clean: run_clean 
 
-build $MAIN: run_ninja | $GENERATED_NINJA ezfio.ml Qptypes.ml
+build $MAIN: run_ninja | ezfio.ml Qptypes.ml $GENERATED_NINJA 
   target = $MAIN
 
-build all: run_ninja | ezfio.ml $GENERATED_NINJA Qptypes.ml
+build all: run_ninja | ezfio.ml Qptypes.ml $GENERATED_NINJA 
   target = 
 
 default $MAIN

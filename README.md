@@ -258,6 +258,6 @@ References
 [Quantum Monte Carlo for large chemical systems: Implementing efficient strategies for petascale platforms and beyond](http://dx.doi.org/10.1002/jcc.23216)
 > Anthony Scemama , Michel Caffarel , Emmanuel Oseret and William Jalby (2013), in: Journal of Computational Chemistry, 34:11(938--951) 
 
-[Quantum Monte Carlo with very large multideterminant wavefunctions](http://arxiv.org/abs/1509.03114)
+[Quantum Monte Carlo with very large multideterminant wavefunctions](http://arxiv.org/abs/1510.00730)
 > Anthony Scemama , Thomas Applencourt , Emmanuel Giner and Michel Caffarel (2015), in: ArXiv ePrints:arXiv:1510.00730v2 [physics.chem-ph] 
 
