@@ -7,8 +7,8 @@ let _threads = ref [] ;;
 (** Kill the current process and all children *)
 let kill () =
   let kill pid = 
-    Printf.printf "Killed %d\n" (Pid.to_int pid);
-    Signal.send_i Signal.term (`Pid pid)
+    Signal.send_i Signal.int (`Pid pid);
+    Printf.printf "Killed %d\n" (Pid.to_int pid)
   in
   List.iter ~f:kill (!_list);
   exit 1 

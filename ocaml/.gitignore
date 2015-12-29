@@ -9,4 +9,5 @@ Qptypes.ml
 generated.ninja
 qmcchem
 qptypes_generator
+Property.ml
 

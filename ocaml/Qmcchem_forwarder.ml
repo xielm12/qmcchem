@@ -79,7 +79,18 @@ let run ezfio_filename dataserver =
     | Ok _ -> ()
     | _    -> print_endline "Unable to remove temporary directory"
     ;
-    ZMQ.Context.terminate zmq_context
+    ZMQ.Context.terminate zmq_context ;
+    for i=port to port+4
+    do
+      let filename =
+         Filename.concat Qmcchem_config.dev_shm  (Printf.sprintf ":%d" i)
+      in
+      try
+         Unix.unlink filename
+      with
+      | _ ->  ()
+      ;
+    done
   in
 
 
