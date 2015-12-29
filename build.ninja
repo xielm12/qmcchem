@@ -28,7 +28,7 @@ rule compile_ocaml_dep
   pool = console
 
 rule compile_ocaml
-  command = scripts/compile_ocaml.sh  $target
+  command = cd ocaml ; ninja $target
   description = Compiling OCaml tools
   pool = console
 
@@ -68,9 +68,7 @@ build qmcchem.tar.gz: create_archive
 # Ocaml
 # -----
 
-build ocaml/generated.ninja : compile_ocaml_dep | EZFIO/Ocaml/ezfio.ml ocaml/Property.ml always
-build ocaml/qmcchem : compile_ocaml | ocaml/generated.ninja EZFIO/Ocaml/ezfio.ml 
-  target = qmcchem
+build ocaml/qmcchem : compile_ocaml | EZFIO/Ocaml/ezfio.ml ocaml/Property.ml 
 
 
 # Copy binaries in bin

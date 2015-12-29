@@ -8,4 +8,4 @@ fi
 
 cd ${QMCCHEM_PATH}/ocaml || exit -1
 
-ninja ${@} || exit -1
+exec ninja -f generated.ninja ${@} || exit -1
