@@ -25,7 +25,7 @@ if [[ ${MD5} != ${REF} ]]
 then
   echo ${MD5} > ${LSMD5_FILE}
   echo Finding dependencies in OCaml files
-  exec python ./ninja_ocaml.py
+  python ./ninja_ocaml.py || exit -1
 fi
 
 
