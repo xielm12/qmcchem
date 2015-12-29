@@ -23,14 +23,14 @@ diffusion Monte Carlo algorithm.
 * The number of simultaneous worker nodes can be variable during a calculation
 * Fully fault-tolerant (crashing nodes don't stop the running calculation)
 * QMC=Chem has been used in grid environments (EGI european grid) and 
-  in Cloud environments (rance Grilles) coupled to supercomputers 
+  in Cloud environments (France Grilles) coupled to supercomputers 
 
 
 Warnings:
 * QMC=Chem is under the GPLv2 license. Any modifications to or
   software including (via compiler) GPL-licensed code must also be made available
   under the GPL along with build & install instructions.
-* Pseudopotentials are about to change in EZFIO database. Current calculations
+* Pseudopotentials are about to change in the EZFIO database. Current calculations
   will not be compatible with future versions
 
 
@@ -43,9 +43,9 @@ Requirements
 * [F77_ZMQ ZeroMQ Fortran interface](http://github.com/scemama/f77_zmq/)
 * [IRPF90 Fortran code generator](http://irpf90.ups-tlse.fr)
 * [EZFIO Easy Fortran I/O library generator](http://github.com/scemama/EZFIO)
-* GNU C++ Compiler (g++) for ZeroMQ
+* GNU C++ Compiler (g++) for ZeroMQ and Ninja
 * Python >= 2.6 for install scripts
-* Bash
+* Bash for install scripts
 * Fortran compiler, Intel Fortran recommended
 * Lapack library, Intel MKL recommended
 
@@ -57,17 +57,23 @@ library need to be installed manually by the user.
 Installation
 ------------
 
-The ``make.config`` file contains compiler specific parameters.
+The ``make.config`` file contains compiler specific parameters. You should change
+them to match your hardware.
 
 The ``configure.sh`` script will first download the
 [Ninja](http://github.com/martine/ninja) build tool, and will then run Ninja
 using the ``install/build.ninja`` file.  The configuration script will work in
 the ``install`` directory.  It will first download into the
-``install/Downloads`` directory everything that needs to be installed. The
-building of the dependencies takes place in the ``install/_build`` directory,
-and the packages that are being installed can be followed by looking at the log
-files in this directory. When a package was successfully installed, a ``*.ok``
-file is created and the log file is deleted.
+``install/Downloads`` directory everything that needs to be installed.
+The building of the dependencies takes place in the ``install/_build``
+directory, and the packages that are being installed can be followed by looking
+at the log files in this directory. When a package was successfully installed,
+a ``*.ok`` file is created and the log file is deleted.
+
+If you don't have an internet connection available, you can execute the
+downloading step on another computer and transfer all the downloaded files
+into the ``Downloads`` directory.
+
 
 Before using or compiling QMC=Chem, environment variables need to be loaded. The
 environment variables are located in the ``qmcchemrc`` file:
@@ -86,12 +92,12 @@ $ ninja
 Example of a QMC=Chem calculation
 ---------------------------------
 
-Calculation with the quantum package
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Calculation with the [quantum package](http://github.com/LCPQ/quantum_package)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 1) Create the ``xyz`` file containing the nuclear coordinates of the system
 
-```bash
+```
 $ cat > h2o.xyz << EOF
 3
 Water molecule
@@ -137,7 +143,7 @@ In QMC=Chem, everything goes through the use of the ``qmcchem`` command.
 When a command is run with no arguments, it prints a help message.
 This is mainly the manual of QMC=Chem. For example:
 
-```bash
+```
 $ qmcchem 
 QMC=Chem command
 
@@ -179,7 +185,7 @@ missing anonymous argument: EZFIO_FILE
 
 1) Set the parameters for a VMC calculation to create initial walker positions
 
-```bash
+```
 $ qmcchem edit -h
 Edit input data
 
@@ -253,5 +259,5 @@ References
 > Anthony Scemama , Michel Caffarel , Emmanuel Oseret and William Jalby (2013), in: Journal of Computational Chemistry, 34:11(938--951) 
 
 [Quantum Monte Carlo with very large multideterminant wavefunctions](http://arxiv.org/abs/1509.03114)
-> Anthony Scemama , Thomas Applencourt , Emmanuel Giner and Michel Caffarel (2015), in: ArXiv ePrints:arXiv:1510.00730 [physics.chem-ph] 
+> Anthony Scemama , Thomas Applencourt , Emmanuel Giner and Michel Caffarel (2015), in: ArXiv ePrints:arXiv:1510.00730v2 [physics.chem-ph] 
 

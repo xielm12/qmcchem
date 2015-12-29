@@ -66,6 +66,9 @@ let qmcchem = lazy(
 and qmc = lazy(
   Filename.concat (Lazy.force root) "bin/qmc"
 )
+and qmcchem_info = lazy(
+  Filename.concat (Lazy.force root) "bin/qmcchem_info"
+)
 and qmc_mic = lazy(
   Filename.concat (Lazy.force root) "bin/qmc_mic"
 )
