@@ -38,7 +38,7 @@ Requirements
 ------------
 
 * [Ninja build tool](http://github.com/martine/ninja)
-* [Ocaml compiler with Opam and Core library](http://github.com/ocaml)
+* [OCaml compiler with Opam and Core library](http://github.com/ocaml)
 * [ZeroMQ high performance communication library](http://www.zeromq.org)
 * [F77_ZMQ ZeroMQ Fortran interface](http://github.com/scemama/f77_zmq/)
 * [IRPF90 Fortran code generator](http://irpf90.ups-tlse.fr)
