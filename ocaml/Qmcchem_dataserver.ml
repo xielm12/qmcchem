@@ -192,6 +192,7 @@ let run ?(daemon=true) ezfio_filename =
       and ez =
         Ezfio.get_electrons_elec_coord_pool ()
         |> Ezfio.flattened_ezfio
+        |> Array.map ~f:Float.to_string
       in
       try
         Array.init walk_num_tot ~f:(fun i ->
@@ -231,6 +232,7 @@ let run ?(daemon=true) ezfio_filename =
           Array.map walkers_array ~f:Array.to_list
           |> Array.to_list
           |> List.concat
+          |> List.map ~f:Float.of_string
         in
         Ezfio.set_electrons_elec_coord_pool (Ezfio.ezfio_array_of_list
           ~rank:3 ~dim:[| elec_num+1 ; 3 ; walk_num_tot |] ~data:walkers_list);
@@ -536,14 +538,14 @@ let run ?(daemon=true) ezfio_filename =
       let random_int =
         Random.int (Strictly_positive_int.to_int n_walks)
       in
-      (Array.to_list (walkers_array.(random_int)) ) :: (walkers accu (n-1))
+      let new_accu = 
+         walkers_array.(random_int) :: accu
+      in
+      walkers new_accu (n-1) 
     in
     walkers [] (Strictly_positive_int.to_int n_walks)
-    |> List.concat
-    |> List.map ~f:(fun x-> Printf.sprintf "%20.14f" x)
-    (*
-    |> List.map ~f:Float.to_string
-    *)
+    |> Array.concat
+    |> Array.to_list
   in
 
   let start_main_thread =
@@ -727,7 +729,8 @@ let run ?(daemon=true) ezfio_filename =
               recv_log log_msg ;
               for i=0 to ((Array.length w)-1)
               do
-                Array.replace walkers_array (!last_walker) (fun _ -> w.(i));
+                Array.replace walkers_array (!last_walker) (fun _ -> Array.map 
+                   ~f:Float.to_string w.(i));
                 increment_last_walker ();
               done;
               let wall =
