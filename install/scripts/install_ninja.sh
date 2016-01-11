@@ -20,7 +20,8 @@ function _install()
 
 if [[ ! -f "Downloads/${TARGET}.tar.gz" ]]
 then
-  wget ${URL} -O "Downloads/${TARGET}.tar.gz" 
+  wget ${URL} -O "Downloads/${TARGET}.tar.gz.tmp" 
+  mv "Downloads/${TARGET}.tar.gz"{.tmp,} 
 fi
 source scripts/build.sh
 
