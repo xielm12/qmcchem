@@ -27,26 +27,6 @@ BEGIN_PROVIDER [ double precision, psi_value_inv2 ]
 END_PROVIDER
 
 
- BEGIN_PROVIDER [ double precision, psi_grad_x, (elec_num_8) ]
-&BEGIN_PROVIDER [ double precision, psi_grad_y, (elec_num_8) ]
-&BEGIN_PROVIDER [ double precision, psi_grad_z, (elec_num_8) ]
-  implicit none
-  BEGIN_DOC
-! Gradients of the wave function
-  END_DOC
-  
-  integer                        :: j
-  !DIR$ VECTOR ALIGNED
-  !DIR$ LOOP COUNT (100)
-  do j=1,elec_num
-    psi_grad_x(j) = psi_grad_psi_inv_x(j)*psi_value
-    psi_grad_y(j) = psi_grad_psi_inv_y(j)*psi_value
-    psi_grad_z(j) = psi_grad_psi_inv_z(j)*psi_value
-  enddo
-  
-END_PROVIDER
-
-
 BEGIN_PROVIDER [ double precision, psi_lapl, (elec_num_8) ]
   implicit none
   BEGIN_DOC
