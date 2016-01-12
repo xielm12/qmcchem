@@ -47,6 +47,18 @@ BEGIN_PROVIDER  [ double precision, wf_extension ]
   SOFT_TOUCH wf_extension_min wf_extension_max
 END_PROVIDER
 
+BEGIN_PROVIDER [ double precision, dmc_pop_weight ]
+ implicit none
+ BEGIN_DOC
+ ! Weight of the DMC population
+ END_DOC
+ dmc_pop_weight = pop_weight_mult
+ dmc_pop_weight_min = min(dmc_pop_weight,dmc_pop_weight_min)
+ dmc_pop_weight_max = max(dmc_pop_weight,dmc_pop_weight_max)
+ SOFT_TOUCH dmc_pop_weight_min dmc_pop_weight_max
+
+END_PROVIDER
+
 
 BEGIN_PROVIDER [ double precision, drift_mod, (size_drift_mod) ]
   implicit none

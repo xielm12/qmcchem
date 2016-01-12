@@ -31,6 +31,7 @@ let files_to_track = [
   "ao_basis/ao_prim_num.gz" ; 
   "electrons/elec_alpha_num" ;
   "electrons/elec_beta_num" ;
+  "electrons/elec_walk_num" ;
   "jastrow/jast_type" ;
   "mo_basis/mo_coef.gz" ;
   "mo_basis/mo_tot_num" ;
@@ -54,6 +55,7 @@ let files_to_track = [
   "simulation/jast_pen.gz" ;
   "simulation/method" ;
   "simulation/time_step" ;
+  "simulation/dmc_projection_time" ;
   "spindeterminants/bit_kind" ;
   "spindeterminants/n_det" ;
   "spindeterminants/n_det_alpha" ;

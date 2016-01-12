@@ -20,7 +20,7 @@ end = struct
 
   type t = bool
 
-  let doc = "Correct wave function to verify electron-nucleus cusp condition"
+  let doc = "Compute pseudo-potentials"
 
   let of_bool x = x 
 
@@ -94,7 +94,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_do_nucl_fitcusp ())) then
-      Ezfio.set_simulation_do_nucl_fitcusp Default.simulation_do_nucl_fitcusp;
+      Lazy.force Default.simulation_do_nucl_fitcusp
+      |> Ezfio.set_simulation_do_nucl_fitcusp ;
     Ezfio.get_simulation_do_nucl_fitcusp ()
     |> of_bool
 
@@ -159,7 +160,7 @@ end = struct
 
   type t = int
 
-  let doc = "Length (seconds) of a block"
+  let doc = "Time (seconds) of a block"
 
   let of_int x =
     if (x < 1) then
@@ -176,7 +177,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_block_time ())) then
-      Ezfio.set_simulation_block_time Default.simulation_block_time;
+      Lazy.force Default.simulation_block_time
+      |> Ezfio.set_simulation_block_time ;
     Ezfio.get_simulation_block_time ()
     |> of_int
 
@@ -242,7 +244,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_electrons_elec_walk_num () )) then
-      Ezfio.set_electrons_elec_walk_num Default.electrons_elec_walk_num;
+      Lazy.force Default.electrons_elec_walk_num
+      |> Ezfio.set_electrons_elec_walk_num ;
     Ezfio.get_electrons_elec_walk_num ()
     |> of_int
 
@@ -298,7 +301,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_electrons_elec_walk_num_tot () )) then
-      Ezfio.set_electrons_elec_walk_num_tot Default.electrons_elec_walk_num_tot;
+      Lazy.force Default.electrons_elec_walk_num_tot
+      |> Ezfio.set_electrons_elec_walk_num_tot ;
     Ezfio.get_electrons_elec_walk_num_tot ()
     |> of_int
 
@@ -356,7 +360,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_stop_time ())) then
-      Ezfio.set_simulation_stop_time Default.simulation_stop_time;
+      Lazy.force Default.simulation_stop_time
+      |> Ezfio.set_simulation_stop_time ;
     Ezfio.get_simulation_stop_time ()
     |> of_int
 
@@ -423,7 +428,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_method ())) then
-      Ezfio.set_simulation_method Default.simulation_method;
+      Lazy.force Default.simulation_method
+      |> Ezfio.set_simulation_method ;
     Ezfio.get_simulation_method ()
     |> of_string
 
@@ -472,7 +478,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_sampling ())) then
-      Ezfio.set_simulation_sampling Default.simulation_sampling;
+      Lazy.force Default.simulation_sampling
+      |> Ezfio.set_simulation_sampling ;
     Ezfio.get_simulation_sampling ()
     |> of_string
 
@@ -503,7 +510,7 @@ module Ref_energy : sig
 end = struct
 
   type t = float
-  let doc = "Fixed reference energy to normalize DMC weights"
+  let doc = "Fixed reference energy to normalize DMC weights (au)"
 
   let of_float x = 
     if (x > 0.) then
@@ -562,7 +569,7 @@ end = struct
 
   type t = float
   let doc = "Truncation t of the wave function : Remove determinants with a
-contribution to the norm less than t"
+contribution to the norm less than t (au)"
 
   let of_float x = 
     if (x >= 1.) then
@@ -579,7 +586,8 @@ contribution to the norm less than t"
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_ci_threshold ())) then
-      Ezfio.set_simulation_ci_threshold Default.simulation_ci_threshold ;
+      Lazy.force Default.simulation_ci_threshold 
+      |> Ezfio.set_simulation_ci_threshold ;
     Ezfio.get_simulation_ci_threshold ()
     |> of_float
 
@@ -603,6 +611,62 @@ contribution to the norm less than t"
   
 end
 
+module DMC_projection_time : sig
+
+  type t = float
+  val doc : string
+  val read  : unit -> t
+  val write : t -> unit
+  val to_float  : t -> float 
+  val of_float  : float -> t
+  val to_string : t -> string
+  val of_string : string -> t
+
+end = struct
+
+  type t = float
+  let doc = "DMC projection time (au)"
+
+  let of_float x = 
+    if (x >= 100.) then
+      failwith "DMC Projection time should be < 100.";
+    if (x <= 0.) then
+      failwith "DMC Projection time should be positive.";
+    x
+
+
+  let to_float x = x
+
+  let read () = 
+    let _ =
+      Lazy.force Qputils.ezfio_filename
+    in
+    if (not (Ezfio.has_simulation_dmc_projection_time())) then
+      Lazy.force Default.simulation_dmc_projection_time
+      |> Ezfio.set_simulation_dmc_projection_time ;
+    Ezfio.get_simulation_dmc_projection_time ()
+    |> of_float
+
+
+  let write t =
+    let _ =
+      Lazy.force Qputils.ezfio_filename
+    in
+    to_float t
+    |> Ezfio.set_simulation_dmc_projection_time
+
+
+  let of_string x =
+    Float.of_string x
+    |> of_float
+
+
+  let to_string x =
+    to_float x
+    |> Float.to_string 
+
+end
+
 module Time_step : sig
 
   type t = float
@@ -617,7 +681,7 @@ module Time_step : sig
 end = struct
 
   type t = float
-  let doc = "Simulation time step"
+  let doc = "Simulation time step (au)"
 
   let of_float x = 
     if (x >= 10.) then
@@ -634,7 +698,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_simulation_time_step ())) then
-      Ezfio.set_simulation_time_step Default.simulation_time_step;
+      Lazy.force Default.simulation_time_step
+      |> Ezfio.set_simulation_time_step ;
     Ezfio.get_simulation_time_step ()
     |> of_float
 
@@ -691,7 +756,8 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     if (not (Ezfio.has_jastrow_jast_type ())) then
-      Ezfio.set_jastrow_jast_type Default.jastrow_jast_type;
+      Lazy.force Default.jastrow_jast_type
+      |> Ezfio.set_jastrow_jast_type ;
     Ezfio.get_jastrow_jast_type ();
     |> of_string
 
@@ -704,7 +770,7 @@ end = struct
       match (Pseudo.read () |> Pseudo.to_bool, t) with
       | (false, _) 
       | (true , None) -> ()
-      | _ -> failwith "Jastrow and Pseudopotentials are incompatible"
+      | _ -> failwith "Jastrow and Pseudopotentials are incompatible for now"
     in
 
     to_string t

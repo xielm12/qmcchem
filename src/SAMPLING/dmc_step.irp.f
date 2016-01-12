@@ -110,6 +110,7 @@ END_SHELL
 
   ! Update the running population weight
   pop_weight_mult *= pop_weight(dmc_projection_step)
+  SOFT_TOUCH pop_weight_mult
 
 BEGIN_SHELL [ /usr/bin/python ]
 from properties import *
@@ -264,7 +265,10 @@ END_PROVIDER
  BEGIN_DOC  
 ! Number of projection steps for SRMC
  END_DOC
- dmc_projection = int( 10.d0/time_step)
+ real :: dmc_projection_time
+ dmc_projection_time = 1.
+ call get_simulation_dmc_projection_time(dmc_projection_time)
+ dmc_projection = int( dmc_projection_time/time_step)
  dmc_projection_step = 0
 END_PROVIDER
 

@@ -36,6 +36,7 @@ data = [ \
 ("simulation_equilibration"        , "logical"       , ""                      ),
 ("simulation_block_time"           , "integer"       , ""                      ),
 ("simulation_time_step"            , "real"          , ""                      ),
+("simulation_dmc_projection_time"  , "real"          , ""                      ),
 ("simulation_method"               , "character*(32)", ""                      ),
 ("simulation_save_data"            , "logical"       , ""                      ),
 ("simulation_print_level"          , "integer"       , ""                      ),

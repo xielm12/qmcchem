@@ -26,6 +26,7 @@ type field =
  | Ref_energy
  | CI_threshold
  | Time_step
+ | DMC_projection_time 
  | Jastrow_type
  | Properties
 
@@ -65,6 +66,8 @@ let get field =
    option_to_string CI_threshold.read   CI_threshold.to_string   CI_threshold.doc  
  | Time_step    ->                    
    option_to_string Time_step.read    Time_step.to_string    Time_step.doc  
+ | DMC_projection_time ->             
+   option_to_string DMC_projection_time.read    DMC_projection_time.to_string   DMC_projection_time.doc 
  | Jastrow_type ->                    
    option_to_string Jastrow_type.read Jastrow_type.to_string Jastrow_type.doc  
  | Properties   ->                    
@@ -102,7 +105,7 @@ let write_input_in_ezfio  ezfio_filename  fields =
 
 
 (** Run the edit command *)
-let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?input ezfio_filename =
+let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?p ?input ezfio_filename =
 
   let interactive = ref (
     if c then
@@ -141,22 +144,24 @@ let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?input ezfio_filename =
   handle_option     Input.Walk_num.(of_int   , write) w;
   handle_option Input.Walk_num_tot.(of_int   , write) wt;
   handle_option Input.CI_threshold.(of_float , write) n;
+  handle_option Input.DMC_projection_time.(of_float , write) p;
 
 
   let fields = 
    [ 
-     Stop_time    ;
-     Block_time   ;
-     Method       ;
-     Ref_energy   ;
-     Sampling     ;
-     Time_step    ;
-     Walk_num     ;
-     Walk_num_tot ;
-     Fitcusp      ;
-     CI_threshold ;
-     Jastrow_type ;
-     Properties   ;
+      Stop_time            ;
+      Block_time           ;
+      Method               ;
+      Sampling             ;
+      Time_step            ;
+      DMC_projection_time  ;
+      Ref_energy           ;
+      Walk_num             ;
+      Walk_num_tot         ;
+      Fitcusp              ;
+      CI_threshold         ;
+      Jastrow_type         ;
+      Properties           ;
    ]
   in
 
@@ -211,18 +216,19 @@ let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?input ezfio_filename =
        try 
          begin
             match f with
-            | Stop_time    ->    Stop_time.(of_string s |> write)
-            | Fitcusp      ->      Fitcusp.(of_string s |> write)
-            | Block_time   ->   Block_time.(of_string s |> write)
-            | Method       ->       Method.(of_string s |> write)
-            | Ref_energy   ->   Ref_energy.(of_string s |> write)
-            | Sampling     ->     Sampling.(of_string s |> write)
-            | Time_step    ->    Time_step.(of_string s |> write)
-            | Walk_num     ->     Walk_num.(of_string s |> write)
-            | Walk_num_tot -> Walk_num_tot.(of_string s |> write)
-            | CI_threshold -> CI_threshold.(of_string s |> write)
-            | Jastrow_type -> Jastrow_type.(of_string s |> write)
-            | Properties   ->   Properties.(of_string s |> write)
+            |  Stop_time            ->  Stop_time.(of_string            s  |>  write)
+            |  Fitcusp              ->  Fitcusp.(of_string              s  |>  write)
+            |  Block_time           ->  Block_time.(of_string           s  |>  write)
+            |  Method               ->  Method.(of_string               s  |>  write)
+            |  Ref_energy           ->  Ref_energy.(of_string           s  |>  write)
+            |  Sampling             ->  Sampling.(of_string             s  |>  write)
+            |  Time_step            ->  Time_step.(of_string            s  |>  write)
+            |  DMC_projection_time  ->  DMC_projection_time.(of_string  s  |>  write)
+            |  Walk_num             ->  Walk_num.(of_string             s  |>  write)
+            |  Walk_num_tot         ->  Walk_num_tot.(of_string         s  |>  write)
+            |  CI_threshold         ->  CI_threshold.(of_string         s  |>  write)
+            |  Jastrow_type         ->  Jastrow_type.(of_string         s  |>  write)
+            |  Properties           ->  Properties.(of_string           s  |>  write)
          end
        with
        | Failure msg -> Printf.eprintf "%s\n" msg
@@ -290,6 +296,8 @@ let spec =
      ~doc:("norm "^Input.CI_threshold.doc)
   +> flag "j"  (optional string)
      ~doc:("jastrow_type "^Input.Jastrow_type.doc)
+  +> flag "p"  (optional float)
+     ~doc:("projection_time "^Input.DMC_projection_time.doc)
   +> anon ("ezfio_file" %: string)
   +> anon (maybe ("input" %: string))
 ;;
@@ -302,8 +310,8 @@ let command =
 Edit input data
       ")
     spec
-    (fun c f t l m e s ts w wt n j ezfio_file input () -> 
-      run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?input ezfio_file )
+    (fun c f t l m e s ts w wt n j p ezfio_file input () -> 
+      run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?p ?input ezfio_file )
 
 
 
