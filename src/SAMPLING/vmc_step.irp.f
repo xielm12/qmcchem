@@ -178,9 +178,7 @@ END_SHELL
    enddo
    
    if (qmc_method == t_DMC) then
-!     if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
-!          (psi_value * psi_value_save(i_walk) > 0.d0).and. &
-!          (dabs(E_ref-E_loc)*time_step_sq < -.2d0*E_ref) ) then
+
      if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
           (psi_value * psi_value_save(i_walk) >= 0.d0) ) then
        dmc_weight(i_walk) = dexp(dtime_step*(E_ref - E_loc))
@@ -263,6 +261,6 @@ BEGIN_PROVIDER [ integer,  trapped_walk_max ]
  BEGIN_DOC  
 ! Max number of trapped MC steps before killing walker
  END_DOC
- trapped_walk_max = 5
+ trapped_walk_max = 20
 END_PROVIDER
 
