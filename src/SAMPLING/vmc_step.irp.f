@@ -178,6 +178,17 @@ END_SHELL
    enddo
    
    if (qmc_method == t_DMC) then
+!     if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
+!          (psi_value * psi_value_save(i_walk) > 0.d0).and. &
+!          (dabs(E_ref-E_loc)*time_step_sq < -.2d0*E_ref) ) then
+     if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
+          (psi_value * psi_value_save(i_walk) >= 0.d0) ) then
+       dmc_weight(i_walk) = dexp(dtime_step*(E_ref - E_loc))
+     else
+       dmc_weight(i_walk) = 0.d0
+       trapped_walk(i_walk) = 0
+     endif
+
      psi_value_save(i_walk) = psi_value
      !DIR$ VECTOR ALIGNED
      !DIR$ LOOP COUNT (200)
@@ -187,21 +198,9 @@ END_SHELL
        psi_grad_psi_inv_save(i,3,i_walk) = psi_grad_psi_inv_z(i) 
      enddo
 
-!     if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
-!          (psi_value * psi_value_save(i_walk) > 0.d0).and. &
-!          (dabs(E_ref-E_loc)*time_step_sq < -.2d0*E_ref) ) then
-     if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
-          (psi_value * psi_value_save(i_walk) > 0.d0) ) then
-       dmc_weight(i_walk) = exp(time_step*(E_ref - E_loc))
-
-     else
-       dmc_weight(i_walk) = 0.d0
-       trapped_walk(i_walk) = 0
-     endif
    endif
  
  enddo
-
 
  double precision               :: factor
  factor = 1.d0/block_weight

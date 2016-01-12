@@ -86,19 +86,29 @@ END_SHELL
  call system_clock(cpu0, count_rate, count_max)
  cpu2 = cpu0
  do while (loop)
+  ! Move to the next projection step
   dmc_projection_step = mod(dmc_projection_step+1,dmc_projection)+1
 
+  ! Remove contribution of the old value of the weight at the new
+  ! projection step
   pop_weight_mult *= 1.d0/pop_weight(dmc_projection_step)
+
+  ! Compute the new weight of the population
   pop_weight(dmc_projection_step) = 0.d0
   do k=1,walk_num
     pop_weight(dmc_projection_step) += dmc_weight(k)
   enddo
 
+  ! Normalize the weight of the walkers by the weight of the population
   do k=1,walk_num
     dmc_weight(k) = dmc_weight(k)/pop_weight(dmc_projection_step)
   enddo
 
+  ! Normalize the weight of the population at the current projection step by
+  ! the number of walkers
   pop_weight(dmc_projection_step) = pop_weight(dmc_projection_step)/dble(walk_num)
+
+  ! Update the running population weight
   pop_weight_mult *= pop_weight(dmc_projection_step)
 
 BEGIN_SHELL [ /usr/bin/python ]
