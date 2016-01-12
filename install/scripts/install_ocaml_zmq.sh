@@ -28,6 +28,9 @@ fi
 
 set +u
 source "${QMCCHEM_PATH}"/qmcchemrc
+export C_INCLUDE_PATH="${QMCCHEM_PATH}/lib":$C_INCLUDE_PATH
+export LIBRARY_PATH="${QMCCHEM_PATH}/lib":$LIBRARY_PATH
+export LD_LIBRARY_PATH="${QMCCHEM_PATH}/lib":$LD_LIBRARY_PATH
 set -u
 opam install zmq 
 rm -f _build/ocaml_zmq.log
