@@ -1,3 +1,52 @@
+subroutine reconfigure_old(ipos,w)
+  implicit none
+  integer, intent(inout)         :: ipos(walk_num)
+  double precision, intent(in)   :: w(walk_num)
+  
+  integer                        :: kptab(walk_num), kmtab(walk_num)
+  double precision               :: wp(walk_num), wm(walk_num)
+  double precision               :: tmp
+  
+  integer                        :: k, l
+  double precision               :: qmc_ranf, rand
+  integer                        :: ipos_tmp(walk_num*2)
+  
+  l=0
+  do k=1,walk_num
+    tmp = w(k)-1.d0
+    rand = qmc_ranf()
+    if (tmp >= 0.d0) then
+      l=l+1
+      ipos_tmp(l) = k
+      if (rand < tmp) then
+        l=l+1
+        ipos_tmp(l) = k
+      endif
+    else
+      if (rand > -tmp) then
+        l=l+1
+        ipos_tmp(l) = k
+      endif
+    endif
+  enddo
+  if (l>walk_num) then
+    do k=l,walk_num+1,-1
+      rand = qmc_ranf() * dble(walk_num)
+      ipos_tmp(int(rand)+1) = ipos_tmp(k) 
+    enddo
+  else
+    do k=l+1,walk_num
+      rand = qmc_ranf() * dble(k-1)
+      ipos_tmp(k) = ipos_tmp(int(rand)+1)
+    enddo
+  endif
+
+  do k=1,walk_num
+    ipos(k) = ipos_tmp(k)
+  enddo
+
+end
+
 subroutine reconfigure(ipos,w)
   implicit none
   integer, intent(inout)         :: ipos(*)

@@ -135,6 +135,7 @@ for p in properties:
 END_SHELL
 
 
+   ! Brownian step
    double precision               :: p,q
    real                           :: delta_x
    logical                        :: accepted
