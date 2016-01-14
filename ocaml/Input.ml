@@ -630,7 +630,7 @@ end = struct
   let of_float x = 
     if (x >= 100.) then
       failwith "DMC Projection time should be < 100.";
-    if (x <= 0.) then
+    if (x < 0.) then
       failwith "DMC Projection time should be positive.";
     x
 
@@ -885,6 +885,16 @@ let validate () =
     | (Method.DMC,0.) -> failwith "E_ref should not be zero in DMC"
     | _          -> ()
   in
+
+(*
+  (* Check Projection time is greater than time step *)
+  let () =
+    match (meth, DMC_projection_time.(read () |> to_float) ) with
+    | (Method.DMC,p) -> 
+      if (p < ts) then failwith "E_ref should not be zero in DMC"
+    | _          -> ()
+  in
+*)
 
   (* Set block and total time*)
   let () =
