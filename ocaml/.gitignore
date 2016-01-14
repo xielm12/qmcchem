@@ -1,6 +1,7 @@
 *.cmi
 *.cmx
 *.o
+*.cmo
 ezfio.ml
 Qptypes.ml
 .ls_md5

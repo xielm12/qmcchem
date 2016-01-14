@@ -135,7 +135,6 @@ for p in properties:
 END_SHELL
 
 
-   ! Brownian step
    double precision               :: p,q
    real                           :: delta_x
    logical                        :: accepted
@@ -299,7 +298,6 @@ BEGIN_PROVIDER [ double precision, pop_weight, (0:dmc_projection+1) ]
 ! Population weight of DMC
  END_DOC
  pop_weight = 1.d0
- pop_weight(dmc_projection) = 1.d0/dble(size(pop_weight))
 END_PROVIDER
 
  BEGIN_PROVIDER [ integer, trapped_walk, (walk_num_8) ]
