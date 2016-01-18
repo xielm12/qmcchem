@@ -2,6 +2,7 @@ open Core.Std
 
 
 let run ezfio_filename = 
+  Qputils.set_ezfio_filename ezfio_filename;
   let qmcchem_info =
       Lazy.force Qmcchem_config.qmcchem_info
   in

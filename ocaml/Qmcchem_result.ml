@@ -164,7 +164,7 @@ let display_summary () =
 
 let run ?a ?c ?e ?h ?t ?p ezfio_file =
 
-  Ezfio.set_file ezfio_file;
+  Qputils.set_ezfio_filename ezfio_file;
   let f (x,func) =
     match x with
     | Some property -> func property 

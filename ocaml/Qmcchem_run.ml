@@ -143,10 +143,7 @@ let ssh_run host dataserver ezfio_filename =
 
 let run a d ?q ?s ezfio_filename = 
 
-  Ezfio.set_file ezfio_filename;
-  let ezfio_filename = 
-    Lazy.force Qputils.ezfio_filename
-  in
+  Qputils.set_ezfio_filename ezfio_filename;
 
   (* Signal handler to Kill properly all the processes *)
   let handler s = 

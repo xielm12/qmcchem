@@ -235,13 +235,12 @@ BEGIN_PROVIDER  [ double precision, E_loc ]
     E_loc += E_kin_elec(i) + E_pot_elec(i)
   enddo
   
-  ! Avoid divergence of E_loc
-  if (qmc_method == t_DMC) then
-    double precision :: delta_e
-    delta_e = E_loc-E_ref
-    E_loc = E_ref + erf(1.d0/(time_step*delta_e*time_step*delta_e)) * delta_e
-  endif
-
+!  ! Avoid divergence of E_loc
+!  if (qmc_method == t_DMC) then
+!    double precision :: delta_e
+!    delta_e = E_loc-E_ref
+!    E_loc = E_ref + erf(1.d0/(time_step*delta_e*time_step*delta_e)) * delta_e
+!  endif
   
   E_loc_min = min(E_loc,E_loc_min)
   E_loc_max = max(E_loc,E_loc_max)

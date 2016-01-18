@@ -148,7 +148,7 @@ BEGIN_PROVIDER  [ integer, qmc_method ]
    implicit none
    include 'types.F'
    BEGIN_DOC
-   ! qmc_method : Calculation method. Can be t_VMC, t_DMC
+   ! qmc_method : Calculation method. Can be t_VMC, t_DMC, t_SRMC
    END_DOC
    character*(32)                 :: method
    method = types(t_VMC)
@@ -158,8 +158,10 @@ BEGIN_PROVIDER  [ integer, qmc_method ]
      qmc_method = t_VMC
    else if (method == types(t_DMC)) then
      qmc_method = t_DMC
+   else if (method == types(t_SRMC)) then
+     qmc_method = t_SRMC
    else
-     call abrt(irp_here, 'Method should be ( VMC | DMC )')
+     call abrt(irp_here, 'Method should be ( VMC | DMC | SRMC )')
    endif
    
    call cinfo(irp_here,'qmc_method',trim(method))
@@ -276,12 +278,15 @@ BEGIN_PROVIDER [ integer, vmc_algo ]
    else if (Sampling == types(t_Langevin)) then
      vmc_algo = t_Langevin
      if (qmc_method == t_DMC) then
-       vmc_algo = t_Brownian
+       stop 'Langevin incompatible with DMC'
+     endif
+     if (qmc_method == t_SRMC) then
+       stop 'Langevin incompatible with SRMC'
      endif
    else if (Sampling == types(t_MTM)) then
      vmc_algo = t_MTM
    else
-     call abrt(irp_here,'Sampling should be (Brownian|Langevin|MTM|Read)')
+     call abrt(irp_here,'Sampling should be (Brownian|Langevin)')
    endif
    call cinfo(irp_here,'Sampling',Sampling)
    

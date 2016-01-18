@@ -9,34 +9,40 @@ let split s =
   |> Str.split split_re
 
 
+let set_ezfio_filename ezfio_filename =
+  let () = 
+    if (not (Sys.file_exists_exn ezfio_filename)) then
+      failwith (ezfio_filename^" does not exist")
+  in
+  let () =
+    match (Sys.is_directory ezfio_filename) with
+    | `Yes -> Ezfio.set_file ezfio_filename ;
+    | _ -> failwith ("Error : "^ezfio_filename^" is not a directory")
+  in 
+  let dir, result =
+    Filename.realpath ezfio_filename
+    |> Filename.split
+  in
+  Unix.chdir dir ;
+  Ezfio.set_file result
+  
+
 let ezfio_filename = lazy (
   let f =
     !Ezfio.ezfio_filename
   in
   let full_path = 
-    begin
-      if f = "EZFIO_File" then
+    match f with
+    | "EZFIO_File" ->
         begin
           if (Array.length Sys.argv = 1) then
              failwith "Error : EZFIO directory not specified on the command line\n";
-          let ezfio_filename = Sys.argv.(1)
-          in
-          let () =
-            match (Sys.is_directory ezfio_filename) with
-            | `Yes -> Ezfio.set_file ezfio_filename ;
-            | _ -> failwith ("Error : "^ezfio_filename^" not found")
-          in ezfio_filename
+          Sys.argv.(1)
         end
-      else
-        f
-    end
+    | f -> f
   in
-  let dir, result =
-    Filename.realpath full_path
-    |> Filename.split
-  in
-  Unix.chdir dir;
-  result
+  set_ezfio_filename full_path;
+  !Ezfio.ezfio_filename
 )
 
 

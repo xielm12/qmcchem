@@ -24,6 +24,12 @@ t = """
     $X_block_walk = $X_dmc_block_walk
     $X_2_block_walk = $X_2_dmc_block_walk
   endif
+ else if (qmc_method == t_SRMC) then
+  PROVIDE E_loc_srmc_block_walk
+  if (calc_$X) then
+    $X_block_walk = $X_srmc_block_walk
+    $X_2_block_walk = $X_2_srmc_block_walk
+  endif
  endif
 
 END_PROVIDER

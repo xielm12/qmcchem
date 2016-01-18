@@ -1,9 +1,9 @@
 open Core.Std
 
 
-let run ~t filename=
+let run ~t ezfio_filename=
 
-  Ezfio.set_file filename;
+  Qputils.set_ezfio_filename ezfio_filename;
 
   if (not (Ezfio.has_simulation_http_server ())) then
      failwith "QMC=Chem is not running"
@@ -13,7 +13,7 @@ let run ~t filename=
     ZMQ.Context.create ()
   in
 
-  Printf.printf "Debugging %s\n%!" filename;
+  Printf.printf "Debugging %s\n%!" ezfio_filename;
   let socket =
     ZMQ.Socket.create zmq_context ZMQ.Socket.sub
   in
@@ -70,7 +70,7 @@ let spec =
   empty
   +> flag "t" no_arg 
      ~doc:"Measure the throughput"
-  +> anon ("filename" %: string)
+  +> anon ("ezfio_file" %: string)
 
 
 let command = 
@@ -78,7 +78,7 @@ let command =
   ~summary: "Debug ZeroMQ communications"
   ~readme:(fun () -> "Gets debug information from the ZMQ debug sockets.")
   spec
-  (fun t filename () -> run t filename)
+  (fun t ezfio_file () -> run t ezfio_file)
 
 
 

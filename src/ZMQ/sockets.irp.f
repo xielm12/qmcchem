@@ -69,11 +69,11 @@ BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_to_dataserver_socket ]
  endif
  integer                        :: i
  i=4
- rc = f77_zmq_setsockopt(zmq_to_dataserver_socket, ZMQ_SNDTIMEO, 120000, i)
+ rc = f77_zmq_setsockopt(zmq_to_dataserver_socket, ZMQ_SNDTIMEO, 600000, i)
  if (rc /= 0) then
    call abrt(irp_here, 'Unable to set send timout in zmq_to_dataserver_socket')
  endif
- rc = f77_zmq_setsockopt(zmq_to_dataserver_socket, ZMQ_RCVTIMEO, 120000, i)
+ rc = f77_zmq_setsockopt(zmq_to_dataserver_socket, ZMQ_RCVTIMEO, 600000, i)
  if (rc /= 0) then
    call abrt(irp_here, 'Unable to set recv timout in zmq_to_dataserver_socket')
  endif
@@ -108,6 +108,7 @@ BEGIN_PROVIDER [ integer(ZMQ_PTR), zmq_socket_push ]
  character*(8), external        :: zmq_port
  zmq_socket_push = f77_zmq_socket(zmq_context, ZMQ_PUSH)
  address = trim(dataserver_address)//':'//zmq_port(2)
+ rc = f77_zmq_setsockopt(zmq_socket_push,ZMQ_LINGER,600000,4)
  rc = f77_zmq_connect(zmq_socket_push, trim(address))
  if (rc /= 0) then
    call abrt(irp_here, 'Unable to connect zmq_socket_push')

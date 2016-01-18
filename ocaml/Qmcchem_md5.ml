@@ -2,7 +2,7 @@ open Core.Std
 
 let run ?c ?d ~l ezfio_filename =
 
-  Ezfio.set_file ezfio_filename;
+  Qputils.set_ezfio_filename ezfio_filename;
 
   let input_directory =
     Lazy.force Md5.input_directory

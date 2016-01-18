@@ -28,7 +28,7 @@ let bind_socket ~socket_type ~socket ~address =
 
 let run ?(daemon=true) ezfio_filename =
 
-  Ezfio.set_file ezfio_filename ;
+  Qputils.set_ezfio_filename ezfio_filename;
 
   (** Measures the time difference between [t0] and [Time.now ()] *)
   let delta_t t0 =
@@ -126,9 +126,9 @@ let run ?(daemon=true) ezfio_filename =
     Printf.sprintf "tcp://*:%d" (port+4)
   in
   bind_socket "XPUB" debug_socket address;
+  ZMQ.Socket.set_linger_period debug_socket 100 ;
 
   let close_debug_socket () =
-      ZMQ.Socket.set_linger_period debug_socket 1000 ;
       ZMQ.Socket.close debug_socket 
   in
 
@@ -475,7 +475,7 @@ let run ?(daemon=true) ezfio_filename =
           ;
         done;
         ZMQ.Socket.send socket (Status.to_string !status);
-        ZMQ.Socket.set_linger_period socket 1000 ;
+        ZMQ.Socket.set_linger_period socket 1_000 ;
         ZMQ.Socket.close socket
       )
   in
@@ -564,9 +564,10 @@ let run ?(daemon=true) ezfio_filename =
         Printf.sprintf "tcp://*:%d" port
       in
       bind_socket "REP" rep_socket address;
-      ZMQ.Socket.set_receive_high_water_mark rep_socket 100000;
-      ZMQ.Socket.set_send_high_water_mark rep_socket 100000;
+      ZMQ.Socket.set_receive_high_water_mark rep_socket 100_000;
+      ZMQ.Socket.set_send_high_water_mark rep_socket 100_000;
       ZMQ.Socket.set_immediate rep_socket true; 
+      ZMQ.Socket.set_linger_period rep_socket 600_000 ;
 
       (** EZFIO Cache *)
       let ezfio_cache =
@@ -630,6 +631,7 @@ let run ?(daemon=true) ezfio_filename =
           List.fold ~init:0 ~f:(fun accu x -> accu + (String.length x)) raw_msg
         in
         let handle = function
+          | Message.Error _ -> ()
           | Message.Ezfio ezfio_msg -> 
               let result = 
                 handle_ezfio ezfio_msg
@@ -718,6 +720,7 @@ let run ?(daemon=true) ezfio_filename =
         in
 
         let handle = function
+          | Message.Error _ -> ()
           | Message.Walkers (h,pid,w) ->
             begin
               if (status = Status.Running) then

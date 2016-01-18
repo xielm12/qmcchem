@@ -2,7 +2,7 @@ open Core.Std
 
 
 let run ezfio_filename = 
-  Ezfio.set_file ezfio_filename ;
+  Qputils.set_ezfio_filename ezfio_filename;
   Status.write Status.Stopping
 
 

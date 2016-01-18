@@ -399,7 +399,7 @@ end
 
 module Method : sig
 
-  type t = VMC | DMC
+  type t = VMC | DMC | SRMC
   val doc : string
   val read  : unit -> t
   val write : t -> unit
@@ -408,19 +408,21 @@ module Method : sig
 
 end = struct
 
-  type t = VMC | DMC
+  type t = VMC | DMC | SRMC
 
-  let doc = "QMC Method : [ VMC | DMC ]"
+  let doc = "QMC Method : [ VMC | DMC | SRMC ]"
 
   let of_string = function
-  | "VMC" | "vmc" -> VMC
-  | "DMC" | "dmc" -> DMC
-  | x -> failwith ("Method should be [ VMC | DMC ], not "^x^".")
+  | "VMC"  | "vmc"  -> VMC
+  | "DMC"  | "dmc"  -> DMC
+  | "SRMC" | "srmc" -> SRMC
+  | x -> failwith ("Method should be [ VMC | DMC | SRMC ], not "^x^".")
 
 
   let to_string = function
   | VMC  -> "VMC"
   | DMC  -> "DMC"
+  | SRMC -> "SRMC"
 
 
   let read () = 
@@ -611,7 +613,7 @@ contribution to the norm less than t (au)"
   
 end
 
-module DMC_projection_time : sig
+module SRMC_projection_time : sig
 
   type t = float
   val doc : string
@@ -625,13 +627,13 @@ module DMC_projection_time : sig
 end = struct
 
   type t = float
-  let doc = "DMC projection time (au)"
+  let doc = "SRMC projection time (au)"
 
   let of_float x = 
     if (x >= 100.) then
-      failwith "DMC Projection time should be < 100.";
+      failwith "SRMC Projection time should be < 100.";
     if (x <= 0.) then
-      failwith "DMC Projection time should be positive.";
+      failwith "SRMC Projection time should be positive.";
     x
 
 
@@ -641,10 +643,10 @@ end = struct
     let _ =
       Lazy.force Qputils.ezfio_filename
     in
-    if (not (Ezfio.has_simulation_dmc_projection_time())) then
-      Lazy.force Default.simulation_dmc_projection_time
-      |> Ezfio.set_simulation_dmc_projection_time ;
-    Ezfio.get_simulation_dmc_projection_time ()
+    if (not (Ezfio.has_simulation_srmc_projection_time())) then
+      Lazy.force Default.simulation_srmc_projection_time
+      |> Ezfio.set_simulation_srmc_projection_time ;
+    Ezfio.get_simulation_srmc_projection_time ()
     |> of_float
 
 
@@ -653,7 +655,7 @@ end = struct
       Lazy.force Qputils.ezfio_filename
     in
     to_float t
-    |> Ezfio.set_simulation_dmc_projection_time
+    |> Ezfio.set_simulation_srmc_projection_time
 
 
   let of_string x =
@@ -862,27 +864,31 @@ let validate () =
   (* Check sampling and time steps *)
   let () =
     match (sampling, meth, Pseudo.to_bool do_pseudo) with
-    | (Sampling.Brownian, Method.DMC, true) ->
+    | (Sampling.Brownian, Method.DMC, true) 
+    | (Sampling.Brownian, Method.SRMC, true) ->
       if ( (Time_step.to_float ts) >= 0.5 ) then
-          warn "Time step seems large for DMC.";
+          warn ( "Time step seems large for "^(Method.to_string meth) )
+    | (Sampling.Brownian, Method.SRMC, false) 
     | (Sampling.Brownian, Method.DMC, false) ->
       if ( (Time_step.to_float ts) >= 0.01 ) then
-          warn "Time step seems large for DMC.";
+          warn ( "Time step seems large for "^(Method.to_string meth) )
     | (Sampling.Brownian, Method.VMC, _) -> 
       if ( (Time_step.to_float ts) >= 10. ) then
-          warn "Time step seems large for VMC.";
+          warn "Time step seems large for VMC."
     | (Sampling.Langevin, Method.VMC, _) -> 
       if ( (Time_step.to_float ts) <= 0.01 ) then
           warn "Time step seems small for Langevin sampling."
+    | (Sampling.Langevin, Method.SRMC, _) 
     | (Sampling.Langevin, Method.DMC, _) ->
-        failwith "Lanvegin sampling is incompatible with DMC"
+        failwith "Lanvegin sampling is incompatible with DMC/SRMC"
   in
 
 
   (* Check E_ref is not zero *)
   let () =
     match (meth, Ref_energy.(read () |> to_float) ) with
-    | (Method.DMC,0.) -> failwith "E_ref should not be zero in DMC"
+    | (Method.SRMC,0.) 
+    | (Method.DMC,0.) -> failwith ("E_ref should not be zero in "^(Method.to_string meth) )
     | _          -> ()
   in
 
@@ -895,7 +901,8 @@ let validate () =
   (* Check if E_loc if computed *)
   let () =
     match (meth, Property.(calc E_loc)) with
-    | (Method.DMC, false) -> failwith "E_loc should be sampled in DMC"
+    | (Method.SRMC, false) 
+    | (Method.DMC, false) -> failwith ( "E_loc should be sampled in "^(Method.to_string meth) )
     | (Method.VMC, false) -> warn "Sampling of E_loc is not activated in input"
     | _ -> ()
   in

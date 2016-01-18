@@ -42,15 +42,23 @@ END_SHELL
 ! Properties averaged over the block using the DMC method
  END_DOC
 
-  real, allocatable :: elec_coord_tmp(:,:,:)
-  integer :: mod_align
-  double precision :: psi_value_save(walk_num)
-  double precision :: psi_value_save_tmp(walk_num)
-  integer :: trapped_walk_tmp(walk_num)
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save
-  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save_tmp
-  allocate ( elec_coord_tmp(mod_align(elec_num+1),3,walk_num) )
-  psi_value_save = 0.d0
+ real, allocatable :: elec_coord_tmp(:,:,:)
+ integer :: mod_align
+ double precision :: E_loc_save(walk_num_dmc_max)
+ double precision :: E_loc_save_tmp(walk_num_dmc_max)
+ double precision :: psi_value_save(walk_num_dmc_max)
+ double precision :: psi_value_save_tmp(walk_num_dmc_max)
+ double precision :: dmc_weight(walk_num_dmc_max)
+ integer :: trapped_walk_tmp(walk_num_dmc_max)
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: E_loc_save
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: E_loc_save_tmp
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: dmc_weight
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save
+ !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save_tmp
+ allocate ( elec_coord_tmp(mod_align(elec_num+1),3,walk_num_dmc_max) )
+ psi_value_save = 0.d0
+ psi_value_save_tmp = 0.d0
+ dmc_weight = 1.d0
 
 ! Initialization
  if (vmc_algo /= t_Brownian) then
@@ -71,8 +79,6 @@ t = """
    $X_2_dmc_block_walk = 0.d0
    !DIR$ VECTOR ALIGNED
    $X_2_dmc_block_walk_kahan = 0.d0
-   $X_min = huge(1.)
-   $X_max =-huge(1.)
  endif
 """
 for p in properties:
@@ -88,35 +94,79 @@ END_SHELL
 
  block_weight = 0.d0
 
+ real, external                 :: accep_rate
+ double precision               :: delta, thr, E0
+
+ thr = 2.d0/time_step_sq
+ E0 = E_ref
+
+
  do while (loop)
 
   ! Every walker makes a step
-  do i_walk=1,walk_num
+  do i_walk=1,walk_num_dmc
     integer :: i,j,l
     do l=1,3
       do i=1,elec_num+1
-        elec_coord(i,l) = elec_coord_full(i,l,i_walk)
+        elec_coord(i,l) = elec_coord_full_dmc(i,l,i_walk)
       enddo
     enddo
     TOUCH elec_coord
+
+   double precision               :: p,q
+   real                           :: delta_x
+   logical                        :: accepted
+   call brownian_step(p,q,accepted,delta_x)
+   if (accepted) then
+      trapped_walk(i_walk) = 0
+   else
+      trapped_walk(i_walk) += 1
+   endif
+
+   if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
+        (psi_value * psi_value_save(i_walk) >= 0.d0) ) then
+     delta = ((E_loc+E_loc_save(i_walk))*0.5d0 - E0) * p 
+     if ( delta > thr ) then
+       dmc_weight(i_walk) = dexp(-dtime_step*thr)
+     else if ( delta < -thr ) then
+       dmc_weight(i_walk) = dexp(dtime_step*thr)
+     else
+       dmc_weight(i_walk) = dexp(-dtime_step*delta)
+     endif
+   else
+     dmc_weight(i_walk) = 0.d0
+     trapped_walk(i_walk) = 0
+   endif
+   
+   elec_coord(elec_num+1,1) += p*time_step
+   elec_coord(elec_num+1,2)  = E_loc
+   elec_coord(elec_num+1,3)  = dmc_weight(i_walk)
+   do l=1,3
+      do i=1,elec_num+1
+        elec_coord_full_dmc(i,l,i_walk) = elec_coord(i,l)
+      enddo
+   enddo
+
+   psi_value_save(i_walk) = psi_value
+   E_loc_save(i_walk) = E_loc
 
 BEGIN_SHELL [ /usr/bin/python ]
 from properties import *
 t = """
      if (calc_$X) then
    ! Kahan's summation algorithm to compute these sums reducing the rounding error:
-   !  $X_dmc_block_walk    += $X * pop_weight_mult
-   !  $X_2_dmc_block_walk  += $X_2 * pop_weight_mult
+   !  $X_dmc_block_walk    += $X * dmc_weight(i_walk)
+   !  $X_2_dmc_block_walk  += $X_2 * dmc_weight(i_walk)
    ! see http://en.wikipedia.org/wiki/Kahan_summation_algorithm
    
-      $X_dmc_block_walk_kahan($D2 3) = $X * pop_weight_mult - $X_dmc_block_walk_kahan($D2 1)
+      $X_dmc_block_walk_kahan($D2 3) = $X * dmc_weight(i_walk) - $X_dmc_block_walk_kahan($D2 1)
       $X_dmc_block_walk_kahan($D2 2) = $X_dmc_block_walk $D1  + $X_dmc_block_walk_kahan($D2 3)
       $X_dmc_block_walk_kahan($D2 1) = ($X_dmc_block_walk_kahan($D2 2) - $X_dmc_block_walk $D1 ) &
           - $X_dmc_block_walk_kahan($D2 3)
       $X_dmc_block_walk $D1  =  $X_dmc_block_walk_kahan($D2 2) 
    
    
-      $X_2_dmc_block_walk_kahan($D2 3) = $X_2 * pop_weight_mult - $X_2_dmc_block_walk_kahan($D2 1)
+      $X_2_dmc_block_walk_kahan($D2 3) = $X_2 * dmc_weight(i_walk) - $X_2_dmc_block_walk_kahan($D2 1)
       $X_2_dmc_block_walk_kahan($D2 2) = $X_2_dmc_block_walk $D1 + $X_2_dmc_block_walk_kahan($D2 3)
       $X_2_dmc_block_walk_kahan($D2 1) = ($X_2_dmc_block_walk_kahan($D2 2) - $X_2_dmc_block_walk $D1 ) &
           - $X_2_dmc_block_walk_kahan($D2 3)
@@ -135,92 +185,59 @@ for p in properties:
 END_SHELL
 
 
-   double precision               :: p,q
-   real                           :: delta_x
-   logical                        :: accepted
-   call brownian_step(p,q,accepted,delta_x)
-   if (accepted) then
-      trapped_walk(i_walk) = 0
-   else
-      trapped_walk(i_walk) += 1
-   endif
-
-   if ( (trapped_walk(i_walk) < trapped_walk_max).and. &
-        (psi_value * psi_value_save(i_walk) >= 0.d0) ) then
-     dmc_weight(i_walk) = dexp(dtime_step*(E_ref - E_loc))
-   else
-     dmc_weight(i_walk) = 0.d0
-     trapped_walk(i_walk) = 0
-   endif
-   
-   elec_coord(elec_num+1,1) += p*time_step
-   elec_coord(elec_num+1,2)  = E_loc
-   elec_coord(elec_num+1,3)  = dmc_weight(i_walk)
-   do l=1,3
-      do i=1,elec_num+1
-        elec_coord_full(i,l,i_walk) = elec_coord(i,l)
-      enddo
-   enddo
-
-   psi_value_save(i_walk) = psi_value
+   block_weight += dmc_weight(i_walk)
 
   enddo
 
-  ! Move to the next projection step
-  if (dmc_projection > 0) then
-    dmc_projection_step = mod(dmc_projection_step,dmc_projection)+1
-  else
-    dmc_projection_step = 1
-  endif
-
-  ! Eventually, recompute the weight of the population
-  if (dmc_projection_step == 1) then
-    pop_weight_mult = 1.d0
-    do k=1,dmc_projection
-      pop_weight_mult *= pop_weight(k)
-    enddo
-  endif
-
-  ! Remove contribution of the old value of the weight at the new
-  ! projection step
-  pop_weight_mult *= 1.d0/pop_weight(dmc_projection_step)
-
-  ! Compute the new weight of the population
+  ! Population control
   double precision :: sum_weight
   sum_weight = 0.d0
-  do k=1,walk_num
+  do k=1,walk_num_dmc
     sum_weight += dmc_weight(k)
   enddo
-  pop_weight(dmc_projection_step) = sum_weight/dble(walk_num)
+  E0 = E_ref - log(real(walk_num_dmc)/real(walk_num)) * 0.1d0/dtime_step
 
-  ! Update the running population weight
-  pop_weight_mult *= pop_weight(dmc_projection_step)
+! Branching
+  integer                        :: ipos(walk_num_dmc_max), walk_num_dmc_new
+  double precision, external     :: qmc_ranf
+  double precision               :: r
 
-  block_weight += pop_weight_mult * dble(walk_num)
-
-! Reconfiguration
-  integer :: ipos(walk_num)
-
-  call reconfigure(ipos,dmc_weight)
-   
-  do k=1,walk_num
+  do k=1,walk_num_dmc
     do l=1,3
      do i=1,elec_num+1
-      elec_coord_tmp(i,l,k) = elec_coord_full(i,l,k)
+      elec_coord_tmp(i,l,k) = elec_coord_full_dmc(i,l,k)
      enddo
     enddo
     psi_value_save_tmp(k) = psi_value_save(k)
+    E_loc_save_tmp(k) = E_loc_save(k)
     trapped_walk_tmp(k) = trapped_walk(k)
+    ipos(k) = k
   enddo
-  
+
+  do k=1,walk_num_dmc
+    r = qmc_ranf()
+    if (dmc_weight(k) > 1.d0) then
+      if ( 1.d0+r < dmc_weight(k) ) then
+        walk_num_dmc = walk_num_dmc+1
+        ipos(walk_num_dmc) = k
+      endif
+    else
+      if ( r > dmc_weight(k) ) then
+        ipos(k) = ipos(walk_num_dmc)
+        walk_num_dmc = walk_num_dmc-1
+      endif
+    endif
+  enddo
+
   integer :: ipm
-  do k=1,walk_num
+  do k=1,walk_num_dmc
    ipm = ipos(k)
    do l=1,3
     do i=1,elec_num+1
-     elec_coord_full(i,l,k) = elec_coord_tmp(i,l,ipm)
+     elec_coord_full_dmc(i,l,k) = elec_coord_tmp(i,l,ipm)
     enddo
    enddo
+   E_loc_save(k) = E_loc_save_tmp(ipm)
    psi_value_save(k) = psi_value_save_tmp(ipm)
    trapped_walk(k) = trapped_walk_tmp(ipm)
   enddo
@@ -237,7 +254,7 @@ END_SHELL
     cpu2 = cpu1
   endif
 
-  SOFT_TOUCH elec_coord_full psi_value psi_grad_psi_inv_x psi_grad_psi_inv_y psi_grad_psi_inv_z elec_coord pop_weight_mult
+  SOFT_TOUCH elec_coord_full_dmc psi_value psi_grad_psi_inv_x psi_grad_psi_inv_y psi_grad_psi_inv_z elec_coord 
 
  enddo
 
@@ -259,6 +276,22 @@ END_SHELL
 
  deallocate ( elec_coord_tmp )
 
+ do k=1,min(walk_num,walk_num_dmc)
+  do l=1,3
+   do i=1,elec_num+1
+    elec_coord_full(i,l,k) = elec_coord_full_dmc(i,l,k)
+   enddo
+  enddo
+ enddo
+ do k=walk_num_dmc+1,walk_num
+  do l=1,3
+   do i=1,elec_num+1
+    elec_coord_full(i,l,k) = elec_coord_full_dmc(i,l,mod(k,walk_num_dmc)+1)
+   enddo
+  enddo
+ enddo
+ SOFT_TOUCH elec_coord_full
+
 END_PROVIDER
 
 
@@ -271,36 +304,7 @@ BEGIN_PROVIDER [ double precision, E_ref ]
   call get_simulation_E_ref(E_ref)
 END_PROVIDER
 
-BEGIN_PROVIDER [ double precision, pop_weight_mult ]
- implicit none
- BEGIN_DOC  
-! Population weight of DMC
- END_DOC
- pop_weight_mult = pop_weight(dmc_projection)
-END_PROVIDER
-
- BEGIN_PROVIDER [ integer, dmc_projection ]
-&BEGIN_PROVIDER [ integer, dmc_projection_step ]
- implicit none
- BEGIN_DOC  
-! Number of projection steps for SRMC
- END_DOC
- real :: dmc_projection_time
- dmc_projection_time = 1.
- call get_simulation_dmc_projection_time(dmc_projection_time)
- dmc_projection = int( dmc_projection_time/time_step)
- dmc_projection_step = 0
-END_PROVIDER
-
-BEGIN_PROVIDER [ double precision, pop_weight, (0:dmc_projection+1) ]
- implicit none
- BEGIN_DOC  
-! Population weight of DMC
- END_DOC
- pop_weight = 1.d0
-END_PROVIDER
-
- BEGIN_PROVIDER [ integer, trapped_walk, (walk_num_8) ]
+ BEGIN_PROVIDER [ integer, trapped_walk, (walk_num_dmc_max) ]
 &BEGIN_PROVIDER [ integer,  trapped_walk_max ]
  implicit none
  BEGIN_DOC  
@@ -311,13 +315,36 @@ END_PROVIDER
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ double precision, dmc_weight, (walk_num_8) ]
+BEGIN_PROVIDER [ integer, walk_num_dmc ]
  implicit none
  BEGIN_DOC
-! Weight of the walkers in the DMC algorithm: exp(-time_step*(E_loc-E_ref))
+ ! Current number of walkers in DMC
  END_DOC
- !DIR$ VECTOR ALIGNED
- dmc_weight = 1.d0
+ walk_num_dmc = walk_num
 END_PROVIDER
 
+BEGIN_PROVIDER [ integer, walk_num_dmc_max ]
+ implicit none
+ BEGIN_DOC
+ ! Max number of walkers in DMC
+ END_DOC
+ walk_num_dmc_max = 3 * walk_num
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ real, elec_coord_full_dmc, (elec_num+1,3,walk_num_dmc_max)]
+ implicit none
+ BEGIN_DOC
+ ! DMC population
+ END_DOC
+ integer :: i,k,l
+ do k=1,walk_num
+   do l=1,3
+     do i=1,elec_num+1
+       elec_coord_full_dmc(i,l,k) = elec_coord_full(i,l,k)
+      enddo
+    enddo
+  enddo
+
+END_PROVIDER
 

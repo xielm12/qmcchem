@@ -226,16 +226,17 @@ let run ezfio_filename dataserver =
         ZMQ.Socket.create zmq_context ZMQ.Socket.req
       in
       ZMQ.Socket.connect req_socket dataserver;
-      ZMQ.Socket.set_receive_timeout req_socket 180_000;
+      ZMQ.Socket.set_receive_timeout req_socket 600_000;
 
       let dealer_socket =
         ZMQ.Socket.create zmq_context ZMQ.Socket.dealer
       in
 
       bind_socket "PROXY" dealer_socket "inproc://dealer";
-      ZMQ.Socket.set_receive_high_water_mark dealer_socket 100000;
-      ZMQ.Socket.set_send_high_water_mark dealer_socket 100000;
+      ZMQ.Socket.set_receive_high_water_mark dealer_socket 100_000;
+      ZMQ.Socket.set_send_high_water_mark dealer_socket 100_000;
       ZMQ.Socket.set_immediate dealer_socket true;
+      ZMQ.Socket.set_linger_period dealer_socket 600_000;
 
       let fetch_walkers () =
         ZMQ.Socket.send_all req_socket ["get_walkers" ; Int.to_string !walk_num ];
@@ -293,7 +294,7 @@ let run ezfio_filename dataserver =
                   let result = 
                     handle_ezfio ezfio_msg
                   in
-                  ZMQ.Socket.send_all dealer_socket (header @ result) ;
+                  ZMQ.Socket.send_all dealer_socket (header @ result) 
               | Message.GetWalkers n_walks ->
                 begin
                   if (!walk_num = 0) then
@@ -305,7 +306,8 @@ let run ezfio_filename dataserver =
                   walkers := fetch_walkers ();
                 end
               | Message.Test ->
-                  ZMQ.Socket.send_all dealer_socket (header @ [ "OK" ]);
+                  ZMQ.Socket.send_all dealer_socket (header @ [ "OK" ])
+              | Message.Error _ ->  ()
               | Message.Register _
               | Message.Unregister _ 
               | Message.Walkers  _
@@ -315,8 +317,8 @@ let run ezfio_filename dataserver =
           end;
       done;
       ZMQ.Socket.set_linger_period dealer_socket 1000 ;
-      ZMQ.Socket.close dealer_socket;
       ZMQ.Socket.set_linger_period req_socket 1000 ;
+      ZMQ.Socket.close dealer_socket;
       ZMQ.Socket.close req_socket;
     in
     Thread.create f
@@ -330,6 +332,7 @@ let run ezfio_filename dataserver =
         ZMQ.Socket.create zmq_context ZMQ.Socket.dealer
       in
       ZMQ.Socket.connect dealer_socket dataserver;
+      ZMQ.Socket.set_linger_period dealer_socket 600_000;
 
       let proxy_socket =
         ZMQ.Socket.create zmq_context ZMQ.Socket.dealer
@@ -345,6 +348,7 @@ let run ezfio_filename dataserver =
       ZMQ.Socket.set_receive_high_water_mark router_socket 100000;
       ZMQ.Socket.set_send_high_water_mark router_socket 100000;
       ZMQ.Socket.set_immediate router_socket true;
+      ZMQ.Socket.set_linger_period router_socket 600_000;
 
       (* Pull socket for computed data *)
       let push_socket =
@@ -353,6 +357,7 @@ let run ezfio_filename dataserver =
         Printf.sprintf "tcp://%s:%d" dataserver_address (port+2-10)
       in
       ZMQ.Socket.connect push_socket address;
+      ZMQ.Socket.set_linger_period push_socket 600_000;
 
       let pull_socket =
         ZMQ.Socket.create zmq_context ZMQ.Socket.pull
@@ -380,13 +385,14 @@ let run ezfio_filename dataserver =
           | Message.GetWalkers _ 
           | Message.Ezfio _
           | Message.Test ->
-              ZMQ.Socket.send_all proxy_socket raw_msg;
+              ZMQ.Socket.send_all proxy_socket raw_msg
           | Message.Register _
           | Message.Unregister _ ->
-              ZMQ.Socket.send_all dealer_socket raw_msg;
+              ZMQ.Socket.send_all dealer_socket raw_msg
           | Message.Walkers (_, _, _)
           | Message.Property _ ->
               failwith "Bad message"
+          | Message.Error _ -> ()
         in handle msg
       in
 
