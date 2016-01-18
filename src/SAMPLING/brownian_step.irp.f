@@ -84,13 +84,8 @@ subroutine brownian_step(p,q,accepted,delta_x)
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xdiff_y
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: xdiff_z
   double precision :: gauss 
-! integer :: k
-! k=0
   do l=1,3
    do i=1,elec_num
-   !k=k+1
-   !double precision :: halton_gauss 
-   !xbrown(i,l) = halton_gauss(k)*time_step_sq
     xbrown(i,l) = gauss()*time_step_sq
    enddo
   enddo

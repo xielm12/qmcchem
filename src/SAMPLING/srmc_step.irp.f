@@ -49,12 +49,18 @@ END_SHELL
   double precision :: psi_value_save(walk_num)
   double precision :: psi_value_save_tmp(walk_num)
   double precision :: srmc_weight(walk_num)
+  double precision, allocatable :: psi_grad_psi_inv_save(:,:,:)
+  double precision, allocatable :: psi_grad_psi_inv_save_tmp(:,:,:)
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_grad_psi_inv_save
+  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_grad_psi_inv_save_tmp
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: E_loc_save
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: E_loc_save_tmp
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: psi_value_save_tmp
   !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: srmc_weight
-  allocate ( elec_coord_tmp(mod_align(elec_num+1),3,walk_num) )
+  allocate ( psi_grad_psi_inv_save(elec_num_8,3,walk_num) ,          &
+       psi_grad_psi_inv_save_tmp(elec_num_8,3,walk_num) ,            &
+      elec_coord_tmp(mod_align(elec_num+1),3,walk_num) )
   psi_value_save = 0.d0
   psi_value_save_tmp = 0.d0
   srmc_weight = 1.d0
@@ -98,19 +104,37 @@ END_SHELL
 
  thr = 2.d0/time_step_sq
 
+ logical :: first_loop
+ first_loop = .True.
 
  do while (loop)
 
   ! Every walker makes a step
   do i_walk=1,walk_num
-    integer :: i,j,l
-    do l=1,3
-      do i=1,elec_num+1
-        elec_coord(i,l) = elec_coord_full(i,l,i_walk)
+    
+    if (.not.first_loop) then
+      integer                        :: i,j,l
+      do l=1,3
+        do i=1,elec_num+1
+          elec_coord(i,l) = elec_coord_full(i,l,i_walk)
+        enddo
+        do i=1,elec_num
+          psi_grad_psi_inv_x(i) = psi_grad_psi_inv_save(i,1,i_walk)
+          psi_grad_psi_inv_y(i) = psi_grad_psi_inv_save(i,2,i_walk)
+          psi_grad_psi_inv_z(i) = psi_grad_psi_inv_save(i,3,i_walk)
+        enddo
+        psi_value = psi_value_save(i_walk)
+        E_loc = E_loc_save(i_walk)
       enddo
-    enddo
-    TOUCH elec_coord
-
+      SOFT_TOUCH elec_coord psi_grad_psi_inv_x psi_grad_psi_inv_y psi_grad_psi_inv_z psi_value E_loc
+    else
+      do l=1,3
+        do i=1,elec_num+1
+          elec_coord(i,l) = elec_coord_full(i,l,i_walk)
+        enddo
+      enddo
+      SOFT_TOUCH elec_coord
+    endif
 
    double precision               :: p,q
    real                           :: delta_x
@@ -126,21 +150,22 @@ END_SHELL
      else
        srmc_weight(i_walk) = dexp(-dtime_step*delta)
      endif
-   else
-     srmc_weight(i_walk) = 0.d0
-   endif
-   
-   elec_coord(elec_num+1,1) += p*time_step
-   elec_coord(elec_num+1,2)  = E_loc
-   elec_coord(elec_num+1,3)  = srmc_weight(i_walk)
-   do l=1,3
-      do i=1,elec_num+1
-        elec_coord_full(i,l,i_walk) = elec_coord(i,l)
-      enddo
-   enddo
+     elec_coord(elec_num+1,1) += p*time_step
+     elec_coord(elec_num+1,2)  = E_loc
+     elec_coord(elec_num+1,3)  = srmc_weight(i_walk)
+     do l=1,3
+        do i=1,elec_num+1
+          elec_coord_full(i,l,i_walk) = elec_coord(i,l)
+        enddo
+     enddo
+     do i=1,elec_num
+       psi_grad_psi_inv_save(i,1,i_walk) = psi_grad_psi_inv_x(i)
+       psi_grad_psi_inv_save(i,2,i_walk) = psi_grad_psi_inv_y(i)
+       psi_grad_psi_inv_save(i,3,i_walk) = psi_grad_psi_inv_z(i)
+     enddo
 
-   psi_value_save(i_walk) = psi_value
-   E_loc_save(i_walk) = E_loc
+     psi_value_save(i_walk) = psi_value
+     E_loc_save(i_walk) = E_loc
 
 BEGIN_SHELL [ /usr/bin/python ]
 from properties import *
@@ -177,6 +202,11 @@ for p in properties:
 END_SHELL
 
     block_weight += pop_weight_mult * srmc_weight(i_walk)
+
+   else
+     srmc_weight(i_walk) = 0.d0
+   endif
+   
 
   enddo
 
@@ -220,6 +250,9 @@ END_SHELL
      do i=1,elec_num+1
       elec_coord_tmp(i,l,k) = elec_coord_full(i,l,k)
      enddo
+     do i=1,elec_num
+      psi_grad_psi_inv_save_tmp(i,l,k) = psi_grad_psi_inv_save(i,l,k)
+     enddo
     enddo
     psi_value_save_tmp(k) = psi_value_save(k)
     E_loc_save_tmp(k) = E_loc_save(k)
@@ -231,6 +264,9 @@ END_SHELL
    do l=1,3
     do i=1,elec_num+1
      elec_coord_full(i,l,k) = elec_coord_tmp(i,l,ipm)
+    enddo
+    do i=1,elec_num
+      psi_grad_psi_inv_save(i,l,k) = psi_grad_psi_inv_save_tmp(i,l,ipm)
     enddo
    enddo
    psi_value_save(k) = psi_value_save_tmp(ipm)
@@ -249,7 +285,9 @@ END_SHELL
     cpu2 = cpu1
   endif
 
-  SOFT_TOUCH elec_coord_full psi_value psi_grad_psi_inv_x psi_grad_psi_inv_y psi_grad_psi_inv_z elec_coord pop_weight_mult
+  SOFT_TOUCH elec_coord_full pop_weight_mult
+
+  first_loop = .False.
 
  enddo
 
@@ -269,7 +307,7 @@ for p in properties:
  print  t.replace("$X",p[1])
 END_SHELL
 
- deallocate ( elec_coord_tmp )
+ deallocate ( elec_coord_tmp, psi_grad_psi_inv_save, psi_grad_psi_inv_save_tmp )
 
 END_PROVIDER
 
