@@ -152,7 +152,7 @@ END_SHELL
      endif
      elec_coord(elec_num+1,1) += p*time_step
      elec_coord(elec_num+1,2)  = E_loc
-     elec_coord(elec_num+1,3)  = srmc_weight(i_walk)
+     elec_coord(elec_num+1,3)  = srmc_weight(i_walk) * pop_weight_mult
      do l=1,3
         do i=1,elec_num+1
           elec_coord_full(i,l,i_walk) = elec_coord(i,l)
