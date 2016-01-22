@@ -15,7 +15,7 @@ URL_F77ZMQ="https://github.com/scemama/f77_zmq/archive/v4.1.3.tar.gz"
 #######
 
 rule download
-  command = [[ -e ${out} ]] || (wget ${url} -O ${out}.tmp -o /dev/null && mv ${out}.tmp ${out})
+  command = [[ -e ${out} ]] || (wget --no-check-certificate ${url} -O ${out}.tmp -o /dev/null && mv ${out}.tmp ${out})
   description = Downloading ${descr}
 
 rule install
