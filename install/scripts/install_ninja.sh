@@ -4,7 +4,7 @@ set -u
 set -e
 
 TARGET=ninja
-URL="http://github.com/martine/ninja/archive/v1.5.3.tar.gz"
+URL="https://github.com/martine/ninja/archive/v1.5.3.tar.gz"
 
 function _install()
 {
@@ -20,7 +20,7 @@ function _install()
 
 if [[ ! -f "Downloads/${TARGET}.tar.gz" ]]
 then
-  wget ${URL} -O "Downloads/${TARGET}.tar.gz.tmp" 
+  wget --no-check-certificate ${URL} -O "Downloads/${TARGET}.tar.gz.tmp" 
   mv "Downloads/${TARGET}.tar.gz"{.tmp,} 
 fi
 source scripts/build.sh
