@@ -261,18 +261,20 @@ BEGIN_PROVIDER [ double precision, pseudo_mo_term, (mo_num,elec_num) ]
 ! \sum < Ylm | MO > x Ylm(r) x V_nl(r)
  END_DOC
  integer :: ii,i,j,l,m,k,n,kk
- double precision :: r, dr_inv
+ double precision :: r, w0, w1, w2, ndr
  double precision :: tmp(pseudo_non_loc_dim_8,mo_num)
+ double precision, save :: dr_inv, dr
  !DIR$ ATTRIBUTES ALIGN : $IRP_ALIGN :: tmp
  integer, save                  :: ifirst = 0
 
  if (ifirst == 0) then
     pseudo_mo_term = 0.d0
     ifirst = 1
+    dr_inv = dble(pseudo_grid_size)/pseudo_grid_rmax
+    dr     = pseudo_grid_rmax/dble(pseudo_grid_size)
  endif
   
  PROVIDE pseudo_ylm present_mos mo_pseudo_grid_scaled pseudo_non_loc_dim_count
- dr_inv = dble(pseudo_grid_size)/pseudo_grid_rmax
  do j=1,elec_num
    tmp = 0.d0
    kk=0
@@ -280,11 +282,25 @@ BEGIN_PROVIDER [ double precision, pseudo_mo_term, (mo_num,elec_num) ]
      r = nucl_elec_dist(k,j)
      n = 1 + int(0.5+r*dr_inv)
      if (n<=pseudo_grid_size) then
+       if (n == pseudo_grid_size) then
+         n = n-1
+       else if (n == 1) then
+         n = 2
+       endif
+
+       ndr = dble(n-1)*dr
+       w0 = -(r-ndr+dr)*dr_inv
+       w1 = -(r-ndr)*dr_inv*0.5d0
+       w2 = -(r-ndr-dr)*dr_inv
+
        do ii=1,num_present_mos
          i = present_mos(ii)
          !DIR$ LOOP COUNT(4)
          do l=kk+1,kk+pseudo_non_loc_dim_count(k)
-           tmp(l,i) = mo_pseudo_grid_scaled (l,i,n) * pseudo_ylm(l,j)
+           tmp(l,i) = ( ( mo_pseudo_grid_scaled (l,i,n-1) * w1 -        &
+                          mo_pseudo_grid_scaled (l,i,n  ) * w0 ) * w2 + &
+                        mo_pseudo_grid_scaled   (l,i,n+1) * w1 * w0 )   &  
+                      * pseudo_ylm(l,j)
          enddo
        enddo
      endif
