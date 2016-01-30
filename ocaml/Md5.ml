@@ -92,7 +92,7 @@ let hash_file filename =
         |> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) )
     end
   | _ -> ""
-
+  
 
 (** Cache containing the current value of the MD5 hash. *)
 let _hash = 
@@ -110,12 +110,17 @@ let hash () =
       else
          ""
     in
-    let new_md5 = files_to_track
-    |> List.map ~f:(fun x -> Printf.sprintf "%s/%s" ezfio_filename x)
-    |> List.map ~f:hash_file
-    |> String.concat
-    |> Cryptokit.hash_string (Cryptokit.Hash.md5 ()) 
-    |> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) 
+    let md5_string = 
+      files_to_track
+      |> List.map ~f:(fun x -> Printf.sprintf "%s/%s" ezfio_filename x)
+      |> List.map ~f:hash_file
+      |> String.concat
+    in
+
+    let new_md5 = 
+      md5_string
+      |> Cryptokit.hash_string (Cryptokit.Hash.md5 ()) 
+      |> Cryptokit.transform_string (Cryptokit.Hexa.encode ()) 
     in
     if (new_md5 <> old_md5) then
       begin

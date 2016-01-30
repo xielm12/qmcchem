@@ -1,6 +1,6 @@
 open Core.Std
 
-let run ?c ?d ~l ezfio_filename =
+let run ?c ?d ~l ~update ezfio_filename =
 
   Qputils.set_ezfio_filename ezfio_filename;
 
@@ -24,6 +24,43 @@ let run ?c ?d ~l ezfio_filename =
       in
       Sys.file_exists_exn filename
     in
+
+    if (update) then
+       begin
+          Printf.printf "Updating\n%!" ;
+          let update_one old_key =
+            Qmcchem_edit.run ~c:false ~input:(filename_of_key old_key) ezfio_filename;
+            Md5.reset_hash ();
+            let new_key =
+              Md5.hash ()
+            in
+
+            if (old_key <> new_key) then
+              begin
+                let new_name = 
+                  String.concat ~sep:"/" [ ezfio_filename; "blocks"; new_key ]
+                and old_name = 
+                  String.concat ~sep:"/" [ ezfio_filename; "blocks"; old_key ]
+                in
+                Printf.printf "Renaming %s -> %s\n" old_name new_name;
+                try Sys.rename old_name new_name with
+                | Sys_error _ -> ();
+
+                let old_name = 
+                  String.concat ~sep:"/" [ ezfio_filename; "input"; old_key ]
+                in
+                Printf.printf "Removing %s\n%!" old_name;
+                try Sys.remove old_name with
+                | Sys_error _ -> ();
+            end
+          in
+          let l = 
+            Sys.ls_dir input_directory
+          in
+          List.iter l ~f:(fun x -> update_one x) ;
+          Printf.printf "Done\n%!" ;
+       end
+    ;
 
     let () =
       match c with
@@ -79,8 +116,8 @@ let run ?c ?d ~l ezfio_filename =
 
   in
 
-  match (c,d,l) with
-  | (None,None,false) -> 
+  match (c,d,l,update) with
+  | (None,None,false,false) -> 
       Printf.printf "Current key :\n%s\n" (Md5.hash ())
   | _ -> handle_options ()
 
@@ -94,6 +131,8 @@ let spec =
      ~doc:("<key> Show input differences with <key>")
   +> flag "l" no_arg
      ~doc:(" List all the saved MD5 keys.")
+  +> flag "update" no_arg
+     ~doc:(" Update to the latest MD5 format.")
   +> anon ("ezfio_file" %: string)
 
 
@@ -106,7 +145,7 @@ let command =
 Manipulate input MD5 keys
       ")
     spec
-    (fun c d l ezfio_file () -> run ?c ?d ~l ezfio_file )
+    (fun c d l update ezfio_file () -> run ?c ?d ~l ~update ezfio_file )
 
 
 
