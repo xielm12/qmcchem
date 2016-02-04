@@ -71,8 +71,6 @@ let run ?(daemon=true) ezfio_filename =
 
 
 
-  (*
-  (** Checks if the port is already open (not working properly yet) *)
   let check_port n =
     let adress_prefix =
       "tcp://*:"
@@ -87,7 +85,9 @@ let run ?(daemon=true) ezfio_filename =
         in
         let result = 
           try
-            (ZMQ.Socket.bind socket address; accu );
+            ZMQ.Socket.bind socket address;
+            ZMQ.Socket.unbind socket address; 
+            accu;
           with
           | _ -> false;
         in
@@ -100,22 +100,18 @@ let run ?(daemon=true) ezfio_filename =
     else
         `Unavailable
   in
-  *)
 
 
 
   (** Random port number between 49152 and 65535 *)
   let port =
     let newport = 
-  (*    ref (49152 + (Random.int 16383)) *)
-      ref ( 1024 + (Random.int (49151-1024)))
+      ref 10000
     in
-  (*
     while ((check_port !newport) = `Unavailable)
     do
-      newport := 49152 + (Random.int 16383)
+      newport := !newport + 100
     done;
-  *)
     !newport
   in
 
