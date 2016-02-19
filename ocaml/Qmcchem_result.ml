@@ -2,9 +2,9 @@ open Core.Std
 open Qptypes
 
 (** Display a table that can be plotted by gnuplot *)
-let display_table property =
+let display_table ~range property =
   let p = Property.of_string property
-  |> Random_variable.of_raw_data
+  |> Random_variable.of_raw_data ~range
   in
   let  conv = Random_variable.convergence p
   and rconv = Random_variable.rev_convergence p
@@ -21,16 +21,16 @@ let display_table property =
 
 
 (** Display a convergence plot of the requested property *)
-let display_plot property =
+let display_plot ~range property =
   print_string ("display_plot "^property^".\n")
 ;;
 
 
 (** Display a convergence table of the error *)
-let display_err_convergence property =
+let display_err_convergence ~range property =
   let p =
     Property.of_string property
-    |> Random_variable.of_raw_data
+    |> Random_variable.of_raw_data ~range
   in
   let rec aux n p = 
       match Random_variable.ave_error p with
@@ -53,10 +53,10 @@ let display_err_convergence property =
 ;;
 
 (** Display the centered cumulants of a property *)
-let display_cumulants property =
+let display_cumulants ~range property =
   let p =
     Property.of_string property
-    |> Random_variable.of_raw_data
+    |> Random_variable.of_raw_data ~range
   in
   let cum =
     Random_variable.centered_cumulants p
@@ -74,10 +74,10 @@ let display_cumulants property =
 
 
 (** Display a table for the autocovariance of the property *)
-let display_autocovariance property =
+let display_autocovariance ~range property =
   let p = 
     Property.of_string property
-    |> Random_variable.of_raw_data
+    |> Random_variable.of_raw_data ~range
   in
   Random_variable.autocovariance p
   |> List.iteri ~f:(fun i x ->
@@ -85,10 +85,10 @@ let display_autocovariance property =
 ;;
 
 (** Display a histogram of the property *)
-let display_histogram property =
+let display_histogram ~range property =
   let p = 
     Property.of_string property
-    |> Random_variable.of_raw_data
+    |> Random_variable.of_raw_data ~range
   in
   let histo = 
     Random_variable.histogram p
@@ -132,12 +132,12 @@ let display_histogram property =
 
 
 (** Display a summary of all the cmoputed quantities *)
-let display_summary () =
+let display_summary ~range =
   
   let properties =
     Lazy.force Block.properties
   and print_property property = 
-    let p = Random_variable.of_raw_data property
+    let p = Random_variable.of_raw_data ~range property
     in
     Printf.printf "%20s : %s\n"
      (Property.to_string property)
@@ -147,10 +147,10 @@ let display_summary () =
 
 
   let cpu =
-    Random_variable.of_raw_data Property.Cpu
+    Random_variable.of_raw_data ~range Property.Cpu
     |> Random_variable.sum
   and wall =
-    Random_variable.of_raw_data Property.Wall
+    Random_variable.of_raw_data ~range Property.Wall
     |> Random_variable.max_value_per_compute_node
     |> Random_variable.sum
   in
@@ -162,13 +162,25 @@ let display_summary () =
 ;;
 
 
-let run ?a ?c ?e ?h ?t ?p ezfio_file =
+let run ?a ?c ?e ?h ?t ?p ?rmin ?rmax ezfio_file =
 
   Qputils.set_ezfio_filename ezfio_file;
-  let f (x,func) =
-    match x with
-    | Some property -> func property 
-    | None -> ()
+
+  let rmin =
+      match rmin with
+      | None -> 0.
+      | Some x when (x<0)   -> failwith "rmin should be >= 0"
+      | Some x when (x>100) -> failwith "rmin should be <= 100"
+      | Some x -> Float.of_int x
+  and rmax = 
+      match rmax with
+      | None -> 100.
+      | Some x when (x<0)   -> failwith "rmax should be >= 0"
+      | Some x when (x>100) -> failwith "rmax should be <= 100"
+      | Some x -> Float.of_int x
+  in
+  let range = 
+    (rmin, rmax)
   in
 
   let l = 
@@ -181,6 +193,12 @@ let run ?a ?c ?e ?h ?t ?p ezfio_file =
     ]
   in
 
+  let f (x,func) =
+    match x with
+    | Some property -> func ~range property 
+    | None -> ()
+  in
+
   List.iter ~f l
   ;
 
@@ -190,7 +208,7 @@ let run ?a ?c ?e ?h ?t ?p ezfio_file =
       | (Some _,_) -> false
      ) l
     ) then
-    display_summary ()
+    display_summary ~range
 ;;
 
 
@@ -207,6 +225,10 @@ let spec =
      ~doc:"property Display the histogram of the property blocks"
   +> flag "p" (optional string)
      ~doc:"property Display a convergence plot for a property"
+  +> flag "rmin"  (optional int)
+     ~doc:"int Lower bound of the percentage of the total weight to consider (default 0)"
+  +> flag "rmax"  (optional int)
+     ~doc:"int Upper bound of the percentage of the total weight to consider (default 100)"
   +> flag "t"  (optional string)
      ~doc:"property Print a table for the convergence of a property"
   +> anon ("ezfio_file" %: string)
@@ -217,7 +239,7 @@ let command =
     ~summary: "Displays the results computed in an EZFIO directory."
     ~readme:(fun () -> "Displays the results computed in an EZFIO directory.")
     spec
-    (fun a c e h p t ezfio_file () -> run ?a ?c ?e ?h ?t ?p ezfio_file )
+    (fun a c e h p rmin rmax t ezfio_file () -> run ?a ?c ?e ?h ?t ?p ?rmin ?rmax ezfio_file )
 ;;
 
 
