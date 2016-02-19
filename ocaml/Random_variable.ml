@@ -1,5 +1,5 @@
-open Core.Std;;
-open Qptypes;;
+open Core.Std
+open Qptypes
 
 type t = 
     { property  :  Property.t ;
@@ -75,14 +75,52 @@ end
 
 
 
-(** Build from raw data *)
-let of_raw_data ?(locked=true) property =
-  let data = 
-     Block.raw_data ~locked ()
-     |> List.filter ~f:(fun x -> x.Block.property = property)
-  in
-  { property ; data }
-;;
+(** Build from raw data. Range values are given in percent. *)
+let of_raw_data ?(locked=true) ~range property =
+    let data = 
+         Block.raw_data ~locked ()
+         |> List.filter ~f:(fun x -> x.Block.property = property)
+    in
+
+    let data_in_range rmin rmax =
+
+        let total_weight =
+            List.fold_left data ~init:0. ~f:(fun accu x ->
+                (Weight.to_float x.Block.weight) +. accu
+            )
+        in
+        
+        let wmin, wmax =
+          rmin *. total_weight *. 0.01,
+          rmax *. total_weight *. 0.01
+        in
+
+        let (_, new_data) =
+            List.fold_left data ~init:(0.,[]) ~f:(fun (wsum, l) x ->
+                if (wsum > wmax) then
+                  (wsum,l)
+                else
+                  begin
+                    let wsum_new =
+                        wsum +. (Weight.to_float x.Block.weight)
+                    in
+                    if (wsum_new > wmin) then
+                        (wsum_new, x::l)
+                    else
+                        (wsum_new, l)
+                  end 
+              )
+        in
+        List.rev new_data
+    in
+
+    let result = 
+      match range with
+      | (0.,100.)   -> { property ; data }
+      | (rmin,rmax) -> { property ; data=data_in_range rmin rmax }
+    in
+    result
+
 
 
 (** Compute average *)
@@ -121,7 +159,7 @@ let average { property ; data } =
     in
     Array.map num ~f:(fun x -> x *. denom_inv)
     |> Average.of_float_array ~dim
-;;
+
 
 
 (** Compute sum (for CPU/Wall time) *)
@@ -130,7 +168,7 @@ let sum { property ; data } =
        let num = (Weight.to_float x.Block.weight) *. (Sample.to_float x.Block.value)
        in accu +. num
      ) 
-;;
+
 
 
 (** Calculation of the average and error bar *)
@@ -212,7 +250,7 @@ let ave_error { property ; data } =
             | (_,None)   -> 0.)
           |> Average.of_float_array ~dim)
       ) 
-;;
+
 
 
 
@@ -226,7 +264,7 @@ let fold_blocks ~f { property ; data } =
     let x = Sample.to_float block.Block.value
     in f accu x
   ) 
-;;
+
 
 
 (** Convergence plot *)
@@ -278,13 +316,13 @@ let convergence { property ; data } =
           ~n:0.
           ~accu:[ (s /. w, 0.) ]
     end
-;;
+
 
 let rev_convergence { property ; data } =
   let p = { property=property ; data = List.rev data } in
   convergence p
   |> List.rev
-;;
+
 
 
 (** Min and max of block *)
@@ -293,14 +331,14 @@ let min_block =
     if (x < accu) then x
     else accu
   )
-;;
+
 
 let max_block =
   fold_blocks ~f:(fun accu x ->
     if (x > accu) then x
     else accu
   )
-;;
+
 
 
 (** Create a hash table for merging *)
@@ -359,7 +397,7 @@ let create_hash ~hashable ~create_key ?(update_block_id=(fun x->x)) t =
         )
   );
   table
-;;
+
 
 
 (** Genergic merge function *)
@@ -375,7 +413,7 @@ let merge ~hashable ~create_key ?update_block_id t =
         else 0)
     |>  List.map ~f:(fun (x,y) -> y)
   }
-;;
+
 
 
 (** Merge per block id *)
@@ -383,7 +421,7 @@ let merge_per_block_id =
   merge 
    ~hashable:Int.hashable
    ~create_key:(fun block -> Block_id.to_int block.Block.block_id)
-;;
+
 
 (** Merge per compute_node *)
 let merge_per_compute_node =
@@ -392,7 +430,7 @@ let merge_per_compute_node =
    ~create_key:(fun block -> 
       Printf.sprintf "%s" 
        (Compute_node.to_string block.Block.compute_node) )
-;;
+
 
 
 (** Merge per Compute_node and PID *)
@@ -403,7 +441,7 @@ let merge_per_compute_node_and_pid =
       Printf.sprintf "%s %10.10d" 
        (Compute_node.to_string block.Block.compute_node)
        (Pid.to_int block.Block.pid) )
-;;
+
 
 
 (** Merge per Compute_node and BlockId *)
@@ -414,7 +452,7 @@ let merge_per_compute_node_and_block_id =
       Printf.sprintf "%s %10.10d" 
        (Compute_node.to_string block.Block.compute_node)
        (Block_id.to_int block.Block.block_id) )
-;;
+
 
 
 
@@ -428,7 +466,7 @@ let compress =
    ~update_block_id:(fun block_id -> 
       ((Block_id.to_int block_id)+1)/2
       |> Block_id.of_int )
-;;
+
   
 
 
@@ -465,7 +503,7 @@ let max_value_per_compute_node t =
         else 0)
     |>  List.map ~f:(fun (x,y) -> y)
   }
-;;
+
 
 
 
@@ -514,7 +552,7 @@ let to_string p =
               Average.to_float ave
               |> Printf.sprintf "%16.10f" 
     end
-;;
+
 
 
 
@@ -568,13 +606,13 @@ let compress_files () =
       match p with
         | Property.Cpu 
         | Property.Accep ->
-          of_raw_data ~locked:false p
+          of_raw_data ~locked:false ~range:(0.,100.) p
             |> merge_per_compute_node
         | Property.Wall  -> 
-          of_raw_data ~locked:false p
+          of_raw_data ~locked:false ~range:(0.,100.) p
             |> max_value_per_compute_node 
         | _     ->
-          of_raw_data ~locked:false p
+          of_raw_data ~locked:false ~range:(0.,100.) p
             |> merge_per_compute_node_and_block_id
     in
     List.iter l.data ~f:(fun x ->
@@ -587,7 +625,7 @@ let compress_files () =
   List.iter files ~f:Unix.remove ;
   Unix.rename ~src:(out_channel_dir^out_channel_name)  ~dst:(dir_name^out_channel_name);
   Unix.rmdir  out_channel_dir
-;;
+
 
 
 (** Autocovariance function (not weighted) *)
@@ -615,7 +653,7 @@ let autocovariance { property ; data } =
   in
   Array.init ~f (Array.length data)
   |> Array.to_list
-;;
+
 
 
 (** Computes the first 4 centered cumulants (zero mean) *)
@@ -666,7 +704,7 @@ let centered_cumulants { property ; data } =
      ( cum3 /. denom, cum4 /. denom -. 3. )
   in 
   [| ave ; var  ; cum3 ;  cum4 |]
-;;
+
 
 
 
@@ -708,5 +746,5 @@ let histogram { property ; data } =
   in
   Array.mapi ~f:(fun i x -> (min +. (Float.of_int i)*.delta_x, x *. norm) ) result
   |> Array.to_list
-;;
+
 
