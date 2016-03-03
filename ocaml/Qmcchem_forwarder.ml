@@ -71,6 +71,7 @@ let run ezfio_filename dataserver =
 
   let terminate () = 
     (* Clean up the temp directory *)
+    Watchdog.kill ();
     Unix.chdir Qmcchem_config.dev_shm;
     let command = 
       Printf.sprintf "rm -rf -- \"%s\" " tmpdir
@@ -96,14 +97,13 @@ let run ezfio_filename dataserver =
 
   (* Signal handler to Kill properly all the processes *)
   let handler s =
-    Printf.printf "Forwarder received the %s signal... killing\n" (Signal.to_string s);
+    Printf.printf "Forwarder received the %s signal... killing\n%!" (Signal.to_string s);
     terminate ();
-    Watchdog.kill ();
   in
   List.iter [
+     Signal.int  ;
      Signal.term ;
      Signal.quit ;
-     Signal.int
     ]
     ~f:(fun x -> Signal.Expert.handle x handler)
   ;

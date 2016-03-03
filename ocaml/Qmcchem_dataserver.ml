@@ -833,12 +833,13 @@ let run ?(daemon=true) ezfio_filename =
 
   (* Handle signals *)
   let handler s = 
+    Printf.printf "Dataserver received the %s signal... killing\n%!" (Signal.to_string s);
     Watchdog.kill ();
   in
   List.iter [
+     Signal.int  ;
      Signal.term ;
      Signal.quit ;
-     Signal.int  
     ]
     ~f:(fun x -> Signal.Expert.handle x handler)
   ;

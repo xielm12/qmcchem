@@ -7,8 +7,8 @@ let full_run ?(start_dataserver=true) ezfio_filename  =
   and scheduler = 
     Scheduler.find ()
   in
-  Printf.printf "Scheduler : %s\n" (Scheduler.to_string scheduler);
-  Printf.printf "Launcher  : %s\n" (Launcher.to_string  launcher );
+  Printf.printf "Scheduler : %s\n%!" (Scheduler.to_string scheduler);
+  Printf.printf "Launcher  : %s\n%!" (Launcher.to_string  launcher );
 
 
   (* Create the node file *)
@@ -147,13 +147,13 @@ let run a d ?q ?s ezfio_filename =
 
   (* Signal handler to Kill properly all the processes *)
   let handler s = 
-    Printf.printf "Received the %s signal... killing\n" (Signal.to_string s);
+    Printf.printf "QMC=Chem received the %s signal... killing\n%!" (Signal.to_string s);
     Watchdog.kill ();
   in
   List.iter [
+     Signal.int  ;
      Signal.term ;
      Signal.quit ;
-     Signal.int  
     ]
     ~f:(fun x -> Signal.Expert.handle x handler)
   ;

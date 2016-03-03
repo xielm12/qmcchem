@@ -8,7 +8,7 @@ let _threads = ref [] ;;
 let kill () =
   let kill pid = 
     Signal.send_i Signal.int (`Pid pid);
-    Printf.printf "Killed %d\n" (Pid.to_int pid)
+    Printf.printf "Killed %d\n%!" (Pid.to_int pid)
   in
   List.iter ~f:kill (!_list);
   exit 1 
