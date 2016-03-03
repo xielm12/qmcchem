@@ -465,6 +465,13 @@ let run ezfio_filename dataserver =
   end;
 
   (* Wait for the qmc process to complete *)
-  ignore (Watchdog.join ());
-  terminate ()
+  try
+    ignore (Watchdog.join ());
+    terminate ()
+  with
+  | error -> 
+    begin
+      terminate ();
+      raise error
+    end
 
