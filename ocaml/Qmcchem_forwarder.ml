@@ -1,14 +1,20 @@
 open Core.Std;;
 
 let bind_socket ~socket_type ~socket ~address =
-  try
-    ZMQ.Socket.bind socket address
-  with 
-  | Unix.Unix_error (_, message, f) -> 
-    failwith @@ Printf.sprintf 
-        "\n%s\nUnable to bind the forwarder's %s socket :\n %s\n%s"
-        f socket_type address message
-  | other_exception -> raise other_exception
+  let rec loop = function 
+  | 0 -> failwith @@ Printf.sprintf 
+        "Unable to bind the forwarder's %s socket : %s\n"
+        socket_type address
+  | -1 -> () 
+  | i ->  
+      try 
+        ZMQ.Socket.bind socket address; 
+        loop (-1) 
+      with 
+      | Unix.Unix_error _ -> (Time.pause @@ Time.Span.of_float 1. ; loop (i-1) ) 
+      | other_exception -> raise other_exception 
+  in loop 10 
+
 
 
 let run ezfio_filename dataserver =
@@ -45,18 +51,41 @@ let run ezfio_filename dataserver =
    *)
   let () = 
     try
-      Unix.mkdir tmpdir
+      Unix.mkdir tmpdir;
+      Unix.chdir tmpdir
     with
     | Unix.Unix_error _ ->
-        (* TODO : wait until the forwarder has started *)
         begin
           Unix.chdir tmpdir;
-          ignore @@ Unix.exec ~prog ~args ()
+          Time.pause @@ Time.Span.of_float 0.1;
+          match (Sys.file_exists "PID") with
+          | `No 
+          | `Unknown -> ()
+          | `Yes ->
+              let pid = 
+                In_channel.with_file "PID" ~f:(fun ic ->
+                  match (In_channel.input_line ic) with
+                  | Some x -> x
+                  | None -> "-1" )
+                |> Int.of_string
+              in
+              match pid with
+              | -1 -> ()
+              | pid ->
+                  begin
+                    match Signal.send (Signal.of_system_int 0) (`Pid (Pid.of_int pid)) with
+                    | `No_such_process ->  ()
+                    | _ -> ignore @@ Unix.exec ~prog ~args ()
+                  end
         end
   in
-  Unix.chdir tmpdir;
 
   (* Now, only one forwarder will execute the following code *)
+  Out_channel.with_file "PID" ~f:(fun oc ->
+    Unix.getpid ()
+    |> Pid.to_int
+    |> Printf.sprintf "%d\n" 
+    |> Out_channel.output_string oc);
 
   (* Fork a qmc *)
   ignore @@
@@ -71,7 +100,6 @@ let run ezfio_filename dataserver =
 
   let terminate () = 
     (* Clean up the temp directory *)
-    Watchdog.kill ();
     Unix.chdir Qmcchem_config.dev_shm;
     let command = 
       Printf.sprintf "rm -rf -- \"%s\" " tmpdir
@@ -91,7 +119,8 @@ let run ezfio_filename dataserver =
       with
       | _ ->  ()
       ;
-    done
+    done;
+    Watchdog.kill ()
   in
 
 
