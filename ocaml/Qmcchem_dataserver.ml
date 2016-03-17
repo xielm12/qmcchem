@@ -106,11 +106,11 @@ let run ?(daemon=true) ezfio_filename =
   (** Random port number between 49152 and 65535 *)
   let port =
     let newport = 
-      ref 10000
+      ref ( 1024 + (Random.int (49151-1024)))
     in
     while ((check_port !newport) = `Unavailable)
     do
-      newport := !newport + 100
+      newport := 1024 + (Random.int (49151-1024))
     done;
     !newport
   in
