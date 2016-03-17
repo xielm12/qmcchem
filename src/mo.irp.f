@@ -47,6 +47,7 @@ END_PROVIDER
   END_DOC
   mo_scale = 1.d0/(0.4d0*log(float(elec_num+1)))
   mo_norm = mo_scale*mo_scale
+
 END_PROVIDER
 
 
@@ -273,6 +274,15 @@ END_PROVIDER
     enddo
   endif
   
+  do i=1,mo_num
+    do j=1,elec_num
+        mo_value_transp(i,j)  *= mo_cusp_rescale(i)
+        mo_grad_transp_x(i,j) *= mo_cusp_rescale(i)
+        mo_grad_transp_y(i,j) *= mo_cusp_rescale(i)
+        mo_grad_transp_z(i,j) *= mo_cusp_rescale(i)
+        mo_lapl_transp(i,j)   *= mo_cusp_rescale(i)
+    enddo
+  enddo
 END_PROVIDER
 
 
@@ -401,6 +411,7 @@ BEGIN_PROVIDER [ double precision , mo_value_at_nucl, (mo_num_8,nucl_num) ]
   integer                        :: i, j, k, l
   real                           :: ao_value_at_nucl_no_S(ao_num)
   
+  PROVIDE mo_fitcusp_normalization_before
   do k=1,nucl_num
     point(1) = nucl_coord(k,1)
     point(2) = nucl_coord(k,2)
@@ -466,6 +477,99 @@ END_PROVIDER
   FREE ao_value_p ao_grad_p ao_lapl_p ao_axis_grad_p ao_oned_grad_p ao_oned_prim_grad_p ao_oned_lapl_p ao_axis_lapl_p ao_oned_prim_lapl_p ao_oned_p ao_oned_prim_p ao_axis_p ao_axis_power_p
   SOFT_TOUCH point
   
+END_PROVIDER
+
+BEGIN_PROVIDER [ double precision, mo_fitcusp_normalization_before, (mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Renormalization factor of MOs due to cusp fitting
+ END_DOC
+ include 'constants.F'
+ integer :: i,j,k,l
+ double precision :: dr, r, f, t
+ integer, save :: ifirst = 0
+
+  if (ifirst == 0) then
+    ifirst = 1
+    mo_fitcusp_normalization_before = 0.d0
+    do k=1,nucl_num
+      dr = nucl_fitcusp_radius(k)*1.d-2
+      point(1) = nucl_coord(k,1)
+      point(2) = nucl_coord(k,2)
+      point(3) = nucl_coord(k,3)-dr
+      do l=1,101
+        r = point(3) + dr
+        point(3) = r
+        TOUCH point
+        f = dfour_pi*r*r*dr
+        do i=1,mo_tot_num
+          mo_fitcusp_normalization_before(i) += f*mo_value_p(i)**2
+        enddo
+      enddo
+    enddo
+  endif
+
+END_PROVIDER
+
+
+BEGIN_PROVIDER [ double precision, mo_fitcusp_normalization_after, (mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Renormalization factor of MOs due to cusp fitting
+ END_DOC
+ include 'constants.F'
+ integer :: i,j,k,l
+ double precision :: dr, r, f, t, t2
+ integer, save :: ifirst = 0
+
+  PROVIDE primitives_reduced
+  if (ifirst == 0) then
+    ifirst = 1
+    mo_fitcusp_normalization_after = 0.d0
+    do k=1,nucl_num
+      dr = nucl_fitcusp_radius(k)*1.d-2
+      point(1) = nucl_coord(k,1)
+      point(2) = nucl_coord(k,2)
+      point(3) = nucl_coord(k,3)- dr
+      do l=1,101
+        point(3) = point(3)+ dr
+        TOUCH point nucl_fitcusp_param primitives_reduced mo_coef
+        r = point(3)
+        f = dfour_pi*r*r*dr
+        do i=1,mo_tot_num
+          t = 0.d0
+          do j=1,ao_num
+            if ( (ao_nucl(j) /= k).or.(ao_power(j,4) > 0) ) then
+              t = t + mo_coef(j,i) * ao_value_p(j) 
+            endif
+          enddo
+          t = t + nucl_fitcusp_param(1,i,k) +                        &
+              r * (nucl_fitcusp_param(2,i,k) +                       &
+              r * (nucl_fitcusp_param(3,i,k) +                       &
+              r *  nucl_fitcusp_param(4,i,k) ))
+          mo_fitcusp_normalization_after(i) += t*t*f
+        enddo
+      enddo
+    enddo
+  endif
+
+END_PROVIDER
+
+BEGIN_PROVIDER [ real, mo_cusp_rescale, (mo_tot_num) ]
+ implicit none
+ BEGIN_DOC
+ ! Rescaling coefficient to normalize MOs after applying fitcusp
+ END_DOC
+ integer :: i
+ if (do_nucl_fitcusp) then
+   do i=1,mo_tot_num
+!     mo_cusp_rescale(i) = dsqrt(mo_fitcusp_normalization_before(i) / mo_fitcusp_normalization_after(i))
+     mo_cusp_rescale(i) = 1.d0/dsqrt(1.d0 - mo_fitcusp_normalization_before(i) + mo_fitcusp_normalization_after(i))
+   enddo
+ else
+     mo_cusp_rescale = 1.d0
+ endif
+
 END_PROVIDER
 
 

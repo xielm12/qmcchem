@@ -66,80 +66,68 @@ end = struct
 
 end
 
-module Fitcusp : sig
 
-  type t = bool
+
+module Fitcusp_factor : sig
+
+  type t = float
   val doc   : string
   val read  : unit -> t
   val write : t -> unit
-  val to_bool : t -> bool
-  val of_bool : bool -> t
-  val to_int  : t -> int
-  val of_int  : int -> t
+  val to_float : t -> float
+  val of_float : float -> t
   val to_string : t -> string
   val of_string : string -> t
 
 end = struct
 
-  type t = bool
+  type t = float
 
-  let doc = "Correct wave function to verify electron-nucleus cusp condition"
+  let doc = "Correct wave function to verify electron-nucleus cusp condition. 
+Fit is done for r < r_c(f) where r_c(f) = (1s orbital radius) x f. Value of f"
 
-  let of_bool x = x 
+  let of_float x = 
+    if (x < 0.) then
+       failwith "Fitcusp_factor should be >= 0.";
+    if (x > 10.) then
+       failwith "Fitcusp_factor is too large.";
+    x 
 
-  let to_bool x = x 
+  let to_float x = x 
 
   let read () = 
-    let _ =
-      Lazy.force Qputils.ezfio_filename
-    in
-    if (not (Ezfio.has_simulation_do_nucl_fitcusp ())) then
-      Lazy.force Default.simulation_do_nucl_fitcusp
-      |> Ezfio.set_simulation_do_nucl_fitcusp ;
-    Ezfio.get_simulation_do_nucl_fitcusp ()
-    |> of_bool
+    ignore @@
+      Lazy.force Qputils.ezfio_filename ;
+    if (not (Ezfio.has_simulation_nucl_fitcusp_factor ())) then
+      begin
+        let factor =
+          Lazy.force Default.simulation_nucl_fitcusp_factor ;
+        in
+        Ezfio.set_simulation_nucl_fitcusp_factor factor
+      end ;
+    Ezfio.get_simulation_nucl_fitcusp_factor () 
+    |> of_float 
 
 
   let write t =
     let _ =
       Lazy.force Qputils.ezfio_filename
     in
-    let () =
-      match (Pseudo.read () |> Pseudo.to_bool, to_bool t) with
-      | (true, true) -> failwith "Pseudopotentials and Fitcusp are incompatible"
-      | _ -> ()
-    in
-    to_bool t
-    |> Ezfio.set_simulation_do_nucl_fitcusp
+    to_float t
+    |> Ezfio.set_simulation_nucl_fitcusp_factor 
 
 
   let to_string t =
-    to_bool t
-    |> Bool.to_string
+    to_float t
+    |> Float.to_string
 
 
   let of_string t =
     try
-      String.lowercase t
-      |> Bool.of_string 
-      |> of_bool
+      Float.of_string t
+      |> of_float
     with
     | Invalid_argument msg -> failwith msg
-
-
-  let to_int t =
-    let t = 
-      to_bool t
-    in
-    if t then 1
-    else 0
-
-
-  let of_int = function
-    | 0 -> false
-    | 1 -> true
-    | _ -> failwith "Expected 0 or 1"
-
 
 end
 
@@ -855,8 +843,6 @@ let validate () =
      Time_step.read ()
   and jast_type = 
     Jastrow_type.read ()
-  and do_fitcusp =
-    Fitcusp.read ()
   and do_pseudo =
     Pseudo.read ()
   in
@@ -915,13 +901,23 @@ let validate () =
     | _ -> ()
   in
 
-  (* Fitcusp is not recommended with pseudo *)
+  (* Fitcusp is incompatible with pseudo *)
   let () =
-    match (Pseudo.to_bool do_pseudo, Fitcusp.to_bool do_fitcusp) with
-    | (true, true) -> warn "Fitcusp is incompatible with Pseudopotentials"
+    let f = 
+      Fitcusp_factor.read ()
+      |> Fitcusp_factor.to_float
+    in
+    match (Pseudo.to_bool do_pseudo, f > 0.) with
+    | (true, true) ->
+      begin
+        warn "Electron-nucleus cusp fitting is incompatible with Pseudopotentials.";
+        Fitcusp_factor.of_float 0.
+        |> Fitcusp_factor.write
+      end
     | _ -> ()
   in
 
+  
   (* Other Checks *)
   let () =
     let _ =

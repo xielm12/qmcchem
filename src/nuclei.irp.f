@@ -125,17 +125,20 @@ BEGIN_PROVIDER [ real, nucl_fitcusp_radius, (nucl_num) ]
   BEGIN_DOC
 ! Distance threshold for the fit
   END_DOC
-  real                           :: def(nucl_num)
+  real                           :: def(nucl_num), factor
   integer                        :: k
+  real, parameter                :: a = 1.74891
+  real, parameter                :: b = 0.126057
   
-  if (.not.do_nucl_fitcusp) then
+  if (.not. do_nucl_fitcusp) then
     nucl_fitcusp_radius = 0.d0
     return
   endif
+
   do k=1,nucl_num
-    nucl_fitcusp_radius(k) = .5/nucl_charge(k)
+    nucl_fitcusp_radius(k) = nucl_fitcusp_factor/(a*nucl_charge(k)+b)
   enddo
-  call get_nuclei_nucl_fitcusp_radius(nucl_fitcusp_radius)
+
   ! Avoid dummy atoms
   do k=1,nucl_num
     if (nucl_charge(k) < 5.d-1) then

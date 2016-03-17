@@ -250,15 +250,20 @@ BEGIN_PROVIDER [ character*(64), hostname]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ logical, do_nucl_fitcusp ]
-   implicit none
-   BEGIN_DOC
-   ! If true, do the fit of the electron-nucleus cusp
-   END_DOC
-   do_nucl_fitcusp = .True.
-   call get_simulation_do_nucl_fitcusp(do_nucl_fitcusp)
-   call linfo(irp_here,'do_nucl_fitcusp',do_nucl_fitcusp)
+ BEGIN_PROVIDER [ real, nucl_fitcusp_factor ]
+&BEGIN_PROVIDER [ logical, do_nucl_fitcusp ]
+ implicit none
+ BEGIN_DOC
+ ! The electron-nucleus cusp fitting is done between 0 and r_c,
+ ! where r_c is chosen as nucl_fitcusp_factor * (radius_of_1s AO)
+ END_DOC
+ nucl_fitcusp_factor = 0.
+ call get_simulation_nucl_fitcusp_factor(nucl_fitcusp_factor)
+ do_nucl_fitcusp = nucl_fitcusp_factor > 0.
+ call info(irp_here,'nucl_fitcusp_factor',nucl_fitcusp_factor)
+
 END_PROVIDER
+
 
  
 BEGIN_PROVIDER [ integer, vmc_algo ]
