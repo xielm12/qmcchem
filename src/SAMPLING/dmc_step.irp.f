@@ -195,7 +195,7 @@ END_SHELL
   do k=1,walk_num_dmc
     sum_weight += dmc_weight(k)
   enddo
-  E0 = E_ref - log(real(walk_num_dmc)/real(walk_num)) * 0.1d0/dtime_step
+  E0 = E_ref - log(sum_weight/real(walk_num)) * 0.1d0 /dtime_step
 
 ! Branching
   integer                        :: ipos(walk_num_dmc_max), walk_num_dmc_new
@@ -214,20 +214,22 @@ END_SHELL
     ipos(k) = k
   enddo
 
+  walk_num_dmc_new = walk_num_dmc
   do k=1,walk_num_dmc
     r = qmc_ranf()
     if (dmc_weight(k) > 1.d0) then
       if ( 1.d0+r < dmc_weight(k) ) then
-        walk_num_dmc = walk_num_dmc+1
-        ipos(walk_num_dmc) = k
+        walk_num_dmc_new = walk_num_dmc_new+1
+        ipos(walk_num_dmc_new) = k
       endif
     else
       if ( r > dmc_weight(k) ) then
-        ipos(k) = ipos(walk_num_dmc)
-        walk_num_dmc = walk_num_dmc-1
+        ipos(k) = ipos(walk_num_dmc_new)
+        walk_num_dmc_new = walk_num_dmc_new-1
       endif
     endif
   enddo
+  walk_num_dmc = walk_num_dmc_new
 
   integer :: ipm
   do k=1,walk_num_dmc
@@ -328,7 +330,7 @@ BEGIN_PROVIDER [ integer, walk_num_dmc_max ]
  BEGIN_DOC
  ! Max number of walkers in DMC
  END_DOC
- walk_num_dmc_max = 3 * walk_num
+ walk_num_dmc_max = max(3 * walk_num, 30)
 END_PROVIDER
 
 

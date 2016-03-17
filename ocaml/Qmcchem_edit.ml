@@ -20,7 +20,7 @@ type field =
  | Walk_num
  | Walk_num_tot
  | Stop_time
- | Fitcusp
+ | Fitcusp_factor
  | Method
  | Sampling
  | Ref_energy
@@ -54,8 +54,8 @@ let get field =
    option_to_string Walk_num_tot.read Walk_num_tot.to_string Walk_num_tot.doc  
  | Stop_time    ->
    option_to_string Stop_time.read    Stop_time.to_string    Stop_time.doc  
- | Fitcusp      ->
-   option_to_string Fitcusp.read      Fitcusp.to_string      Fitcusp.doc
+ | Fitcusp_factor ->
+   option_to_string Fitcusp_factor.read      Fitcusp_factor.to_string      Fitcusp_factor.doc
  | Method       ->
    option_to_string Method.read       Method.to_string       Method.doc  
  | Sampling     ->
@@ -130,19 +130,19 @@ let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?p ?input ezfio_filename =
     in ();
   in
 
-  handle_option   Input.Ref_energy.(of_float , write) e;
-  handle_option Input.Jastrow_type.(of_string, write) j;
-  handle_option   Input.Block_time.(of_int   , write) l;
-  handle_option       Input.Method.(of_string, write) m;
-  handle_option    Input.Stop_time.(of_int   , write) t;
-  handle_option     Input.Sampling.(of_string, write) s;
-  handle_option      Input.Fitcusp.(of_int   , write) f;
-  handle_option    Input.Time_step.(of_float , write) ts;
-  handle_option     Input.Walk_num.(of_int   , write) w;
-  handle_option Input.Walk_num_tot.(of_int   , write) wt;
-  handle_option Input.CI_threshold.(of_float , write) n;
-  handle_option Input.SRMC_projection_time.(of_float , write) p;
-
+  handle_option     Input.Ref_energy.(of_float , write) e;
+  handle_option   Input.Jastrow_type.(of_string, write) j;
+  handle_option     Input.Block_time.(of_int   , write) l;
+  handle_option         Input.Method.(of_string, write) m;
+  handle_option      Input.Stop_time.(of_int   , write) t;
+  handle_option       Input.Sampling.(of_string, write) s;
+  handle_option Input.Fitcusp_factor.(of_float , write) f;
+  handle_option      Input.Time_step.(of_float , write) ts;
+  handle_option       Input.Walk_num.(of_int   , write) w;
+  handle_option   Input.Walk_num_tot.(of_int   , write) wt;
+  handle_option   Input.CI_threshold.(of_float , write) n;
+  handle_option   Input.SRMC_projection_time.(of_float , write) p;
+                 
 
   let fields = 
    [ 
@@ -155,7 +155,7 @@ let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?p ?input ezfio_filename =
       Ref_energy           ;
       Walk_num             ;
       Walk_num_tot         ;
-      Fitcusp              ;
+      Fitcusp_factor       ;
       CI_threshold         ;
       Jastrow_type         ;
       Properties           ;
@@ -214,7 +214,7 @@ let run ~c ?f ?t ?l ?m ?e ?s ?ts ?w ?wt ?n ?j ?p ?input ezfio_filename =
          begin
             match f with
             |  Stop_time             ->  Stop_time.(of_string            s  |>  write)
-            |  Fitcusp               ->  Fitcusp.(of_string              s  |>  write)
+            |  Fitcusp_factor        ->  Fitcusp_factor.(of_string       s  |>  write)
             |  Block_time            ->  Block_time.(of_string           s  |>  write)
             |  Method                ->  Method.(of_string               s  |>  write)
             |  Ref_energy            ->  Ref_energy.(of_string           s  |>  write)
@@ -271,8 +271,8 @@ let spec =
   empty
   +> flag "c"  no_arg
      ~doc:(" Clear blocks")
-  +> flag "f"  (optional int)
-     ~doc:("0|1 "^Input.Fitcusp.doc)
+  +> flag "f"  (optional float)
+     ~doc:("float "^Input.Fitcusp_factor.doc)
   +> flag "t"  (optional int)
      ~doc:("seconds "^Input.Stop_time.doc)
   +> flag "l"  (optional int)

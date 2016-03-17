@@ -73,6 +73,7 @@ BEGIN_PROVIDER [ logical, primitives_reduced ]
       PROVIDE  ao_power
       PROVIDE  ao_coef
       PROVIDE  ao_nucl
+      PROVIDE  mo_fitcusp_normalization_before
       do i=1,ao_num
         if (ao_oned_p(i) /= 0.) then
           l=ao_power(i,1)+ao_power(i,2)+ao_power(i,3)

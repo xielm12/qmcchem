@@ -37,10 +37,9 @@ let files_to_track = [
   "mo_basis/mo_tot_num" ;
   "nuclei/nucl_charge.gz" ;
   "nuclei/nucl_coord.gz" ;
-  "nuclei/nucl_fitcusp_radius.gz" ;
   "nuclei/nucl_num" ;
   "simulation/ci_threshold" ;
-  "simulation/do_nucl_fitcusp" ;
+  "simulation/nucl_fitcusp_factor" ;
   "simulation/jast_a_up_dn" ;
   "simulation/jast_a_up_up" ;
   "simulation/jast_b_up_dn" ;

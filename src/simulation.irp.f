@@ -148,7 +148,7 @@ BEGIN_PROVIDER  [ integer, qmc_method ]
    implicit none
    include 'types.F'
    BEGIN_DOC
-   ! qmc_method : Calculation method. Can be t_VMC, t_DMC, t_SRMC
+   ! qmc_method : Calculation method. Can be t_VMC, t_DMC, t_SRMC, t_FKMC
    END_DOC
    character*(32)                 :: method
    method = types(t_VMC)
@@ -160,8 +160,10 @@ BEGIN_PROVIDER  [ integer, qmc_method ]
      qmc_method = t_DMC
    else if (method == types(t_SRMC)) then
      qmc_method = t_SRMC
+   else if (method == types(t_FKMC)) then
+     qmc_method = t_FKMC
    else
-     call abrt(irp_here, 'Method should be ( VMC | DMC | SRMC )')
+     call abrt(irp_here, 'Method should be ( VMC | DMC | SRMC | FKMC )')
    endif
    
    call cinfo(irp_here,'qmc_method',trim(method))
@@ -250,15 +252,20 @@ BEGIN_PROVIDER [ character*(64), hostname]
 END_PROVIDER
 
 
-BEGIN_PROVIDER [ logical, do_nucl_fitcusp ]
-   implicit none
-   BEGIN_DOC
-   ! If true, do the fit of the electron-nucleus cusp
-   END_DOC
-   do_nucl_fitcusp = .True.
-   call get_simulation_do_nucl_fitcusp(do_nucl_fitcusp)
-   call linfo(irp_here,'do_nucl_fitcusp',do_nucl_fitcusp)
+ BEGIN_PROVIDER [ real, nucl_fitcusp_factor ]
+&BEGIN_PROVIDER [ logical, do_nucl_fitcusp ]
+ implicit none
+ BEGIN_DOC
+ ! The electron-nucleus cusp fitting is done between 0 and r_c,
+ ! where r_c is chosen as nucl_fitcusp_factor * (radius_of_1s AO)
+ END_DOC
+ nucl_fitcusp_factor = 0.
+ call get_simulation_nucl_fitcusp_factor(nucl_fitcusp_factor)
+ do_nucl_fitcusp = nucl_fitcusp_factor > 0.
+ call info(irp_here,'nucl_fitcusp_factor',nucl_fitcusp_factor)
+
 END_PROVIDER
+
 
  
 BEGIN_PROVIDER [ integer, vmc_algo ]
@@ -282,6 +289,9 @@ BEGIN_PROVIDER [ integer, vmc_algo ]
      endif
      if (qmc_method == t_SRMC) then
        stop 'Langevin incompatible with SRMC'
+     endif
+     if (qmc_method == t_FKMC) then
+       stop 'Langevin incompatible with FKMC'
      endif
    else if (Sampling == types(t_MTM)) then
      vmc_algo = t_MTM

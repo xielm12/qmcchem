@@ -1,7 +1,7 @@
 MAIN=qmcchem
 # Main program to build
 
-PACKAGES=-package core,sexplib.syntax,cryptokit,str,ZMQ
+PACKAGES=-package core,pa_sexp_conv,cryptokit,str,ZMQ
 # Required opam packages, for example:
 # PACKAGES=-package core,sexplib.syntax
 
