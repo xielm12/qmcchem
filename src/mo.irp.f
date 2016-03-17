@@ -47,7 +47,6 @@ END_PROVIDER
   END_DOC
   mo_scale = 1.d0/(0.4d0*log(float(elec_num+1)))
   mo_norm = mo_scale*mo_scale
-
 END_PROVIDER
 
 
@@ -536,7 +535,7 @@ BEGIN_PROVIDER [ double precision, mo_fitcusp_normalization_after, (mo_tot_num) 
         TOUCH point nucl_fitcusp_param primitives_reduced mo_coef
         r = point(3)
         f = dfour_pi*r*r*dr
-        do i=1,mo_tot_num
+        do i=1,mo_num
           t = 0.d0
           do j=1,ao_num
             if ( (ao_nucl(j) /= k).or.(ao_power(j,4) > 0) ) then

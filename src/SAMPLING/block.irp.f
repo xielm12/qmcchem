@@ -30,6 +30,12 @@ t = """
     $X_block_walk = $X_srmc_block_walk
     $X_2_block_walk = $X_2_srmc_block_walk
   endif
+ else if (qmc_method == t_FKMC) then
+  PROVIDE E_loc_fkmc_block_walk
+  if (calc_$X) then
+    $X_block_walk = $X_fkmc_block_walk
+    $X_2_block_walk = $X_2_fkmc_block_walk
+  endif
  endif
 
 END_PROVIDER

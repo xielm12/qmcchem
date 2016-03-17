@@ -387,7 +387,7 @@ end
 
 module Method : sig
 
-  type t = VMC | DMC | SRMC
+  type t = VMC | DMC | SRMC | FKMC
   val doc : string
   val read  : unit -> t
   val write : t -> unit
@@ -396,21 +396,23 @@ module Method : sig
 
 end = struct
 
-  type t = VMC | DMC | SRMC
+  type t = VMC | DMC | SRMC | FKMC
 
-  let doc = "QMC Method : [ VMC | DMC | SRMC ]"
+  let doc = "QMC Method : [ VMC | DMC | SRMC | FKMC ]"
 
   let of_string = function
   | "VMC"  | "vmc"  -> VMC
   | "DMC"  | "dmc"  -> DMC
   | "SRMC" | "srmc" -> SRMC
-  | x -> failwith ("Method should be [ VMC | DMC | SRMC ], not "^x^".")
+  | "FKMC" | "fkmc" -> FKMC
+  | x -> failwith ("Method should be [ VMC | DMC | SRMC | FKMC ], not "^x^".")
 
 
   let to_string = function
   | VMC  -> "VMC"
   | DMC  -> "DMC"
   | SRMC -> "SRMC"
+  | FKMC -> "FKMC"
 
 
   let read () = 
@@ -851,10 +853,12 @@ let validate () =
   let () =
     match (sampling, meth, Pseudo.to_bool do_pseudo) with
     | (Sampling.Brownian, Method.DMC, true) 
+    | (Sampling.Brownian, Method.FKMC, true) 
     | (Sampling.Brownian, Method.SRMC, true) ->
       if ( (Time_step.to_float ts) >= 0.5 ) then
           warn ( "Time step seems large for "^(Method.to_string meth) )
     | (Sampling.Brownian, Method.SRMC, false) 
+    | (Sampling.Brownian, Method.FKMC, false) 
     | (Sampling.Brownian, Method.DMC, false) ->
       if ( (Time_step.to_float ts) >= 0.01 ) then
           warn ( "Time step seems large for "^(Method.to_string meth) )
@@ -865,8 +869,9 @@ let validate () =
       if ( (Time_step.to_float ts) <= 0.01 ) then
           warn "Time step seems small for Langevin sampling."
     | (Sampling.Langevin, Method.SRMC, _) 
+    | (Sampling.Langevin, Method.FKMC, _) 
     | (Sampling.Langevin, Method.DMC, _) ->
-        failwith "Lanvegin sampling is incompatible with DMC/SRMC"
+        failwith "Lanvegin sampling is incompatible with DMC"
   in
 
 
@@ -874,6 +879,7 @@ let validate () =
   let () =
     match (meth, Ref_energy.(read () |> to_float) ) with
     | (Method.SRMC,0.) 
+    | (Method.FKMC,0.) 
     | (Method.DMC,0.) -> failwith ("E_ref should not be zero in "^(Method.to_string meth) )
     | _          -> ()
   in
@@ -888,6 +894,7 @@ let validate () =
   let () =
     match (meth, Property.(calc E_loc)) with
     | (Method.SRMC, false) 
+    | (Method.FKMC, false) 
     | (Method.DMC, false) -> failwith ( "E_loc should be sampled in "^(Method.to_string meth) )
     | (Method.VMC, false) -> warn "Sampling of E_loc is not activated in input"
     | _ -> ()

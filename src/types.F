@@ -6,6 +6,7 @@
       integer, parameter :: t_VMC      = 7
       integer, parameter :: t_DMC      = 8
       integer, parameter :: t_SRMC     = 9
+      integer, parameter :: t_FKMC     = 10
 
       integer, parameter :: t_Simple   = 11
       integer, parameter :: t_None     = 12
@@ -26,7 +27,7 @@
           'VMC            ',   &
           'DMC            ',   &
           'SRMC           ',   &
-          '               ',   &
+          'FKMC           ',   &
           'Simple         ',   &
           'None           ',   &
           '               ',   &

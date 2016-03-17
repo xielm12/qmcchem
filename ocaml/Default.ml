@@ -3,7 +3,7 @@ open Core.Std;;
 
 let simulation_nucl_fitcusp_factor  = lazy(
   let default = 
-    0.5
+    1.
   in
   if (Ezfio.has_pseudo_do_pseudo ()) then
     if (Ezfio.get_pseudo_do_pseudo ()) then
@@ -14,8 +14,8 @@ let simulation_nucl_fitcusp_factor  = lazy(
     default
 )
 
-let electrons_elec_walk_num         = lazy ( 30          )
-let electrons_elec_walk_num_tot     = lazy ( 10000       )
+let electrons_elec_walk_num         = lazy ( 100         )
+let electrons_elec_walk_num_tot     = lazy ( 1000        )
 let jastrow_jast_type               = lazy ( "None"      )
 let simulation_block_time           = lazy ( 30          )
 let simulation_ci_threshold         = lazy ( 1.e-8       )

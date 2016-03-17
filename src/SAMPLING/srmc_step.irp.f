@@ -133,7 +133,9 @@ END_SHELL
           elec_coord(i,l) = elec_coord_full(i,l,i_walk)
         enddo
       enddo
-      SOFT_TOUCH elec_coord
+      TOUCH elec_coord
+      psi_value_save(i_walk) = psi_value
+      E_loc_save(i_walk) = E_loc
     endif
 
    double precision               :: p,q
