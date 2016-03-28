@@ -260,26 +260,6 @@ END_PROVIDER
     enddo
   enddo
 
-
-! Normalization of the contracted AOs 
-! -----------------------------------
-
-  integer                        :: k
-  do i=1,ao_num
-    pow(1) = ao_power_transp(1,i)
-    pow(2) = ao_power_transp(2,i)
-    pow(3) = ao_power_transp(3,i)
-    norm = 0.d0
-    do j=1,ao_prim_num(i)
-      do k=1,ao_prim_num(i)
-        norm = norm + ao_coef(i,j) * ao_coef(i,k) * goverlap(ao_expo(i,j),ao_expo(i,k),pow)
-      enddo
-    enddo
-    do j=1,ao_prim_num(i)
-      ao_coef(i,j) = ao_coef(i,j)/sqrt(norm)
-    enddo
-  enddo
-
 END_PROVIDER
 
 
