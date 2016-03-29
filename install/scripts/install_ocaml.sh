@@ -4,7 +4,7 @@ set -u
 set -e
 
 cd .. ; QMCCHEM_PATH="$PWD" ; cd -
-PACKAGES="core cryptokit ocamlfind sexplib pa_sexp_conv"
+PACKAGES="core cryptokit ocamlfind sexplib" # ppx_sexp_conv"
 
 declare -i i
 i=$(gcc -dumpversion | cut -d '.' -f 2)
