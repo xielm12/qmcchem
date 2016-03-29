@@ -61,10 +61,14 @@ subroutine draw_init_points
   
   call rinfo( irp_here, 'time step =', time_step )
   do iwalk=1,walk_num
-    call iinfo( irp_here, 'Generate initial positions for walker', iwalk )
+    print *, 'Generating initial positions for walker', iwalk 
     acc_num = 0
     do_elec = .True.
-    do while (acc_num < elec_num)
+    integer :: iter
+    do iter = 1,10000
+      if (acc_num >= elec_num) then
+        exit
+      endif
       double precision               :: gauss
       real                           :: re_compute
       re_compute = 0.
@@ -72,7 +76,7 @@ subroutine draw_init_points
         do i=1,elec_num
           if (do_elec(i)) then
             do l=1,3
-              elec_coord(i,l) = xmin(l,i) + 2.*(0.5-qmc_ranf())
+              elec_coord(i,l) = xmin(l,i) + 1.5*(0.5-qmc_ranf())
             enddo
           endif
         enddo
@@ -97,7 +101,6 @@ subroutine draw_init_points
           endif
         endif
       enddo
-      
       
     enddo
     
@@ -159,17 +162,17 @@ subroutine run_prepare_walkers
       enddo
     enddo
     TOUCH mo_coef_transp
-    call iinfo (irp_here, 'Starting walker ', iwalk )
+    print *, 'Starting walker ', iwalk 
     
     do istep=1,1000
-      if (single_det_value == 0.d0) then
+      if (psidet_value == 0.d0) then
         exit
       endif
       prepare_walkers_t = float(istep)/1000.
       TOUCH prepare_walkers_t
-      rcond = log(abs(dble(single_det_value)))
+      rcond = log(abs(dble(psidet_value)))
       real                           :: factor
-      rcond = log(abs(dble(single_det_value)))
+      rcond = log(abs(dble(psidet_value)))
       integer                        :: icount
       icount = 0
       do while ( (rcond > 10.d0) .or. (rcond < -10.d0) )
@@ -190,17 +193,20 @@ subroutine run_prepare_walkers
         enddo
         TOUCH mo_coef_transp
         
-        rcond = log(abs(dble(single_det_value)))
+        rcond = log(abs(dble(psidet_value)))
       enddo
       double precision               :: p,q
       logical                        :: accepted
       real                           :: delta_x
       accepted = .False.
-      do while (.not.accepted)
+      do icount=1,100
         if (vmc_algo == t_Brownian) then
           call brownian_step(p,q,accepted,delta_x)
         else if (vmc_algo == t_Langevin) then
           call langevin_step(p,q,accepted,delta_x)
+        endif
+        if (accepted) then
+          exit
         endif
       enddo
     enddo
@@ -209,7 +215,6 @@ subroutine run_prepare_walkers
         elec_coord_full(i,l,iwalk) = elec_coord(i,l)
       enddo
     enddo
-    call iinfo(irp_here, 'Walker done', iwalk)
     TOUCH elec_coord_full
   enddo
   
