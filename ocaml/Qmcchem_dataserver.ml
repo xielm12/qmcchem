@@ -30,6 +30,19 @@ let run ?(daemon=true) ezfio_filename =
 
   Qputils.set_ezfio_filename ezfio_filename;
 
+  (** Check if walkers need to be created. *)
+  let () = 
+      if ( not(Ezfio.has_electrons_elec_coord_pool ()) ) then
+        begin
+          Printf.printf "Generating initial walkers...\n%!";
+          Unix.fork_exec ~prog:(Lazy.force Qmcchem_config.qmc_create_walkers)
+              ~args:["qmc_create_walkers" ; ezfio_filename] ()
+          |> Unix.waitpid_exn ;
+          Printf.printf "Initial walkers ready\n%!"
+        end ;
+  in
+
+
   (** Measures the time difference between [t0] and [Time.now ()] *)
   let delta_t t0 =
     let t1 =
@@ -37,7 +50,6 @@ let run ?(daemon=true) ezfio_filename =
     in
     Time.abs_diff t1 t0
   in
-
 
   (** {2 ZeroMQ initialization} *)
 
@@ -174,15 +186,6 @@ let run ?(daemon=true) ezfio_filename =
       3*elec_num + 3
     in
     let result = 
-      if ( not(Ezfio.has_electrons_elec_coord_pool ()) ) then
-        begin
-          Printf.printf "Generating initial walkers...\n%!";
-          Unix.fork_exec ~prog:(Lazy.force Qmcchem_config.qmc_create_walkers)
-              ~args:["qmc_create_walkers" ; ezfio_filename] ()
-          |> Unix.waitpid_exn ;
-          Printf.printf "Initial walkers ready\n%!"
-        end ;
-
       let size =
         Ezfio.get_electrons_elec_coord_pool_size ()
       and ez =
