@@ -47,15 +47,12 @@ let create m =
             } 
     | "elec_coord" :: c :: pid :: _ :: n ::walkers ->
       begin
-        let walk_num =
-          Lazy.force Qputils.walk_num
-        and elec_num =
+        let elec_num =
           Lazy.force Qputils.elec_num
         and n = 
           Int.of_string n
         in
         assert (n = List.length walkers);
-        assert (n = walk_num*(elec_num+1)*3);
         let rec build_walker accu = function
         | (0,tail) -> 
             let result = 

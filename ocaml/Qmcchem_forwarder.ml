@@ -234,7 +234,7 @@ let run ezfio_filename dataserver =
           end
         else if (polling.(1) = Some ZMQ.Poll.In) then
           begin
-            Printf.printf "Forwarder subscribe\n%!";
+            Printf.eprintf "Forwarder subscribe\n%!";
             ZMQ.Socket.recv ~block:false pub_socket
             |> ZMQ.Socket.send sub_socket ;
           end
@@ -435,10 +435,53 @@ let run ezfio_filename dataserver =
         |> ZMQ.Socket.send_all router_socket
       in
 
+      let select_n_of ~n ~len l =
+        let a = 
+          Array.of_list l
+        in
+        let s = 
+          (Array.length a)/ len
+        in
+        let fetch i = 
+          let rec loop accu = function 
+          | -1 -> accu
+          | k -> loop ((Array.get a (i+k)) :: accu) (k-1)
+          in
+          loop [] (len-1)
+        in
+        let rec select accu = function
+        | 0 -> accu
+        | i -> let new_accu =
+                (fetch @@ Random.int s) :: accu
+              in 
+              select new_accu (i-1)
+        in
+        select [] n
+        |> List.concat
+      in
+
       (* Handles messages coming into the PULL socket. *)
       let handle_pull () =
-        ZMQ.Socket.recv_all ~block:false pull_socket
-        |> ZMQ.Socket.send_all push_socket 
+        let message = 
+          ZMQ.Socket.recv_all ~block:false pull_socket
+        in
+        let new_message = 
+          match message with
+          | "elec_coord":: hostname :: pid :: id :: n_str :: rest ->
+            let n = 
+              Int.of_string n_str
+            in
+            let len =
+              n / !walk_num
+            in
+            if (n < 5*len) then
+              message
+            else
+              List.concat [ [ "elec_coord" ; hostname ; pid ; id ; 
+              Int.to_string (5*len)] ; ( select_n_of ~n:5 ~len rest ) ]
+          | _ -> message
+        in
+        ZMQ.Socket.send_all  push_socket  new_message
       in
 
       (* Polling item to poll ROUTER and PULL sockets. *)

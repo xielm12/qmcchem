@@ -1,4 +1,5 @@
-BEGIN_PROVIDER [ character*(8), current_PID ]
+ BEGIN_PROVIDER [ character*(8), current_PID ]
+&BEGIN_PROVIDER [ integer,   len_current_PID ]
  implicit none
  BEGIN_DOC
  ! Process ID
@@ -6,6 +7,7 @@ BEGIN_PROVIDER [ character*(8), current_PID ]
  integer :: getpid
  write(current_PID,'(I8)') getpid()
  current_PID = adjustl(trim(current_PID))
+ len_current_PID = len(trim(current_PID))
 
 END_PROVIDER
 

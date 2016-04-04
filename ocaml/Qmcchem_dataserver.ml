@@ -719,7 +719,7 @@ let run ?(daemon=true) ezfio_filename =
         in
 
         let handle = function
-          | Message.Error _ -> ()
+          | Message.Error m -> Printf.eprintf "%s\n%!" m;
           | Message.Walkers (h,pid,w) ->
             begin
               if (status = Status.Running) then

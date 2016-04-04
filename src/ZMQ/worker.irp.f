@@ -18,11 +18,12 @@ subroutine zmq_register_worker(msg)
 
 
   character*(64) :: buffer
+  integer :: size
 
-  rc = f77_zmq_msg_init_size(msg,64)
-  write(buffer,'(A)') trim(hostname)
-  buffer = adjustl(trim(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer, len(buffer))
+  size = len(trim(hostname))
+  buffer = trim(hostname)
+  rc = f77_zmq_msg_init_size(msg,size)
+  rc = f77_zmq_msg_copy_to_data(msg, buffer, size)
   rc = f77_zmq_msg_send(msg,zmq_to_dataserver_socket,ZMQ_SNDMORE)
   if (rc == -1) then
      call abrt(irp_here, 'Unable to send register message (1)')
@@ -31,8 +32,8 @@ subroutine zmq_register_worker(msg)
 
   call worker_log(irp_here, 'Registering')
 
-  rc = f77_zmq_msg_init_size(msg,8)
-  rc = f77_zmq_msg_copy_to_data(msg, current_PID, 8)
+  rc = f77_zmq_msg_init_size(msg,len_current_PID)
+  rc = f77_zmq_msg_copy_to_data(msg, current_PID, len_current_PID)
   rc = f77_zmq_msg_send(msg,zmq_to_dataserver_socket,0)
   if (rc == -1) then
      call abrt(irp_here, 'Unable to send register message (2)')
@@ -66,20 +67,21 @@ subroutine zmq_unregister_worker(msg)
   endif
   rc = f77_zmq_msg_close(msg)
 
-  character*(64) :: buffer
+  character*(64)                 :: buffer
+  integer                        :: size
 
-  rc = f77_zmq_msg_init_size(msg,64)
-  write(buffer,'(A)') trim(hostname)
-  buffer = adjustl(trim(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer, len(buffer))
+  size = len(trim(hostname))
+  buffer = trim(hostname)
+  rc = f77_zmq_msg_init_size(msg,size)
+  rc = f77_zmq_msg_copy_to_data(msg, buffer, size)
   rc = f77_zmq_msg_send(msg,zmq_to_dataserver_socket,ZMQ_SNDMORE)
   if (rc == -1) then
      call abrt(irp_here, 'Unable to send unregister message (2)')
   endif
   rc = f77_zmq_msg_close(msg)
 
-  rc = f77_zmq_msg_init_size(msg,8)
-  rc = f77_zmq_msg_copy_to_data(msg, current_PID, 8)
+  rc = f77_zmq_msg_init_size(msg,len_current_PID)
+  rc = f77_zmq_msg_copy_to_data(msg, current_PID, len_current_PID)
   rc = f77_zmq_msg_send(msg,zmq_to_dataserver_socket,0)
   if (rc == -1) then
      call abrt(irp_here, 'Unable to send unregister message (3)')
@@ -124,23 +126,25 @@ subroutine zmq_send_header(msg,header,block_id)
 
   character*(64) :: buffer
 
-  rc = f77_zmq_msg_init_size(msg,64)
-  write(buffer,'(A)') trim(hostname)
-  buffer = adjustl(trim(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer, len(buffer))
+  buffer = trim(hostname)
+  size = len(trim(hostname))
+  rc = f77_zmq_msg_init_size(msg,size)
+  rc = f77_zmq_msg_copy_to_data(msg, buffer, size)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
   rc = f77_zmq_msg_close(msg)
 
   call worker_log(irp_here, header)
-  rc = f77_zmq_msg_init_size(msg,8)
-  rc = f77_zmq_msg_copy_to_data(msg, current_PID, 8)
+  rc = f77_zmq_msg_init_size(msg,len_current_PID)
+  rc = f77_zmq_msg_copy_to_data(msg, current_PID, len_current_PID)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
   rc = f77_zmq_msg_close(msg)
 
-  rc = f77_zmq_msg_init_size(msg,8)
+   
   write(buffer,'(I8)') block_id
   buffer = adjustl(trim(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer, 8)
+  size = len(trim(buffer))
+  rc = f77_zmq_msg_init_size(msg,size)
+  rc = f77_zmq_msg_copy_to_data(msg, buffer, size)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
   rc = f77_zmq_msg_close(msg)
 
@@ -156,21 +160,22 @@ subroutine zmq_send_scalar_prop(msg,weight,value)
   END_DOC
   integer(ZMQ_PTR)               :: msg
   double precision               :: weight, value
-  integer                        :: rc,sze
+  integer                        :: rc,size
   character*(32)                 :: buffer
 
   write(buffer,'(E32.16)') weight
   buffer = adjustl(trim(buffer))
-  sze = len(buffer)
-  rc = f77_zmq_msg_init_size(msg,len(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer,sze)
+  size = len(trim(buffer))
+  rc = f77_zmq_msg_init_size(msg,len(trim(buffer)))
+  rc = f77_zmq_msg_copy_to_data(msg, buffer,size)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
   rc = f77_zmq_msg_close(msg)
 
   write(buffer,'(E32.16)') value
   buffer = adjustl(trim(buffer))
-  rc = f77_zmq_msg_init_size(msg,len(buffer))
-  rc = f77_zmq_msg_copy_to_data(msg, buffer,len(buffer))
+  size = len(trim(buffer))
+  rc = f77_zmq_msg_init_size(msg,size)
+  rc = f77_zmq_msg_copy_to_data(msg, buffer,size)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,0)
   rc = f77_zmq_msg_close(msg)
 
@@ -192,7 +197,7 @@ subroutine zmq_send_array_prop(msg,weight,value,isize)
 
   write(buffer,'(I8)') isize
   buffer = adjustl(trim(buffer))
-  l  = len(buffer)
+  l  = len(trim(buffer))
   rc = f77_zmq_msg_init_size(msg,l)
   rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
@@ -201,7 +206,7 @@ subroutine zmq_send_array_prop(msg,weight,value,isize)
 
   write(buffer,'(E32.16)') weight
   buffer = adjustl(trim(buffer))
-  l  = len(buffer)
+  l  = len(trim(buffer))
   rc = f77_zmq_msg_init_size(msg,l)
   rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
@@ -211,7 +216,7 @@ subroutine zmq_send_array_prop(msg,weight,value,isize)
   do i=1,isize
     write(buffer,'(E32.16)') value(i)
     buffer = adjustl(trim(buffer))
-    l = len(buffer)
+    l = len(trim(buffer))
     sze += l
     rc = f77_zmq_msg_init_size(msg,l)
     rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
@@ -262,7 +267,7 @@ subroutine zmq_send_int(msg,value,isize)
 
   write(buffer,'(I8)') isize
   buffer = adjustl(trim(buffer))
-  l  = len(buffer)
+  l  = len(trim(buffer))
   rc = f77_zmq_msg_init_size(msg,l)
   rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
@@ -272,7 +277,7 @@ subroutine zmq_send_int(msg,value,isize)
   do i=1,isize
     write(buffer,'(I16)') value(i)
     buffer = adjustl(trim(buffer))
-    l = len(buffer)
+    l = len(trim(buffer))
     sze += l
     rc = f77_zmq_msg_init_size(msg,l)
     rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
@@ -302,7 +307,7 @@ subroutine zmq_send_real(msg,value,isize)
 
   write(buffer,'(I8)') isize
   buffer = adjustl(trim(buffer))
-  l  = len(buffer)
+  l  = len(trim(buffer))
   rc = f77_zmq_msg_init_size(msg,l)
   rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
   rc = f77_zmq_msg_send(msg,zmq_socket_push,ZMQ_SNDMORE)
@@ -312,7 +317,7 @@ subroutine zmq_send_real(msg,value,isize)
   do i=1,isize
     write(buffer,'(E32.16)') value(i)
     buffer = adjustl(trim(buffer))
-    l = len(buffer)
+    l = len(trim(buffer))
     sze += l
     rc = f77_zmq_msg_init_size(msg,l)
     rc = f77_zmq_msg_copy_to_data(msg, buffer,l)
@@ -388,7 +393,7 @@ subroutine get_running(do_run)
     else
       do_run = t_Stopped
     endif
-    call worker_log(irp_here,buffer)
+!    call worker_log(irp_here,buffer)
 
   endif
 end
