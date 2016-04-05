@@ -481,8 +481,6 @@ let run ezfio_filename dataserver =
               Int.to_string (5*len)] ; ( select_n_of ~n:5 ~len rest ) ]
           | _ -> message
         in
-   let f = fun x -> x   in
-   Printf.printf "%s\n%s\n\n%!" (List.to_string ~f message) (List.to_string ~f new_message);
         ZMQ.Socket.send_all  push_socket  new_message
       in
 
