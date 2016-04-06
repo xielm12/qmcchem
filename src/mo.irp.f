@@ -560,14 +560,14 @@ BEGIN_PROVIDER [ real, mo_cusp_rescale, (mo_tot_num) ]
  ! Rescaling coefficient to normalize MOs after applying fitcusp
  END_DOC
  integer :: i
- if (do_nucl_fitcusp) then
-   do i=1,mo_tot_num
-!     mo_cusp_rescale(i) = dsqrt(mo_fitcusp_normalization_before(i) / mo_fitcusp_normalization_after(i))
-     mo_cusp_rescale(i) = 1.d0/dsqrt(1.d0 - mo_fitcusp_normalization_before(i) + mo_fitcusp_normalization_after(i))
-   enddo
- else
-     mo_cusp_rescale = 1.d0
- endif
+! if (do_nucl_fitcusp) then
+!   do i=1,mo_tot_num
+!     mo_cusp_rescale(i) = 1.d0/dsqrt(1.d0 - mo_fitcusp_normalization_before(i) + mo_fitcusp_normalization_after(i))
+!   enddo
+! else
+!     mo_cusp_rescale = 1.d0
+! endif
+ mo_cusp_rescale = 1.d0
 
 END_PROVIDER
 
