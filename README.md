@@ -90,12 +90,12 @@ $ ninja
 Example of a QMC=Chem calculation
 ---------------------------------
 
-Calculation with the [quantum package](http://github.com/LCPQ/quantum_package)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1.Calculation with the [quantum package](http://github.com/LCPQ/quantum_package)
 
-1) Create the ``xyz`` file containing the nuclear coordinates of the system
 
-```
+Create the `xyz` file containing the nuclear coordinates of the system
+
+```bash
 $ cat > h2o.xyz << EOF
 3
 Water molecule
@@ -105,31 +105,32 @@ H -0.239987 0.926627 0.
 EOF
 ```
 
-2) Choose a suitable basis set and create the [EZFIO database](https://github.com/LCPQ/ezfio)
+Choose a suitable basis set and create the [EZFIO database](https://github.com/LCPQ/ezfio)
 
 ```bash
 $ qp_create_ezfio_from_xyz -b cc-pvdz h2o.xyz -o h2o
 ```
 
-3) Run the SCF calculation
+Run the SCF calculation
 
 ```bash
 $ qp_run SCF h2o
 ```
-4) Run the CIPSI calculation
+Run the CIPSI calculation
 
 ```bash
 $ qp_run full_ci h2o
 ```
 
-5) Transform the input for use in QMC=Chem
+Transform the input for use in QMC=Chem
 
 ```bash
 $ qp_run save_for_qmcchem h2o
 ```
 
-FN-DMC calculation with QMC=Chem
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+2.FN-DMC calculation with QMC=Chem
+
 
 Before using QMC=Chem, you need to load the environment variables:
 
